@@ -1,0 +1,26 @@
+# Runs pylama, black in main, merge_requests
+stages:
+  - code-quality
+
+# Black sub-stage in the code-quality stage
+black:
+  stage: code-quality
+  image: detecttechnologies/python-code-quality:latest
+  script:
+    - black --diff --color --line-length 119 .
+    - black --check --line-length 119 .
+  only:
+    refs:
+      - merge_requests
+      - main
+
+# Pylama sub-stage in the code-quality stage
+pylama:
+  stage: code-quality
+  image: detecttechnologies/python-code-quality:latest
+  script:
+    - pylama .
+  only:
+    refs:
+      - merge_requests
+      - main

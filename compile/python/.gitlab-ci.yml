@@ -1,0 +1,91 @@
+# Compile and push python packages to Ops repos. 
+stages:
+  - build
+  - push
+
+build-x86:
+  stage: build
+  image:
+    name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler:1.0-amd64
+    entrypoint: [""]
+  needs: []
+  script:
+    - mkdir /home/user/load
+    - cp -R ./* /home/user/load/
+    - bash /home/user/helper/start.sh
+    - ls -al /home/user/load/
+    - cp -R /home/user/load/*.so ./
+  artifacts:
+    paths:
+      - ./*.so
+  only:
+    refs:
+      - main
+
+setup-binfmt:
+  stage: build
+  image:
+    name: docker
+  needs: []
+  services:
+    - docker:dind
+  script:
+    - docker run --rm --privileged docker/binfmt:820fdd95a9972a5308930a2bdfb8573dd4447ad3
+  only:
+    refs:
+      - main
+
+build-arm:
+  stage: build
+  image:
+    name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler:1.0-arm64
+    entrypoint: [""]
+  needs: ["setup-binfmt"]
+  script:
+    - mkdir /home/user/load
+    - cp -R ./* /home/user/load/
+    - bash /home/user/helper/start.sh
+    - ls -al /home/user/load/
+    - cp -R /home/user/load/*.so ./
+  artifacts:
+    paths:
+      - ./*.so
+  only:
+    refs:
+      - main
+
+push-binaries:
+  stage: push
+  image: bitnami/git
+  needs: ["build-x86", "build-arm"]
+  script:
+    # Setup SSH
+    - mkdir ~/.ssh/
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - ssh-keyscan -t rsa $CI_SERVER_HOST >> ~/.ssh/known_hosts
+    - echo "${SSH_PUSH_KEY}" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - git config --global user.email "PlatformTeam@detecttechnologies.com"
+    - git config --global user.name "DetectTechnologies CI"
+    - git clone "${BUILD_OUTPUT_REPO}" /root/dest
+    # Copy outputs and commit
+    - cd /root/dest
+    - git reset --soft HEAD~1 || true
+    # Delete all py files and so files
+    - find . -wholename "**/*.py" -type f -delete
+    - find . -wholename "**/*.so" -type f -delete
+    - cd -
+    # Copy .so, main.py, __init__.py
+    - ls -al .
+    - find . -wholename **/*.so -exec cp --parents \{\} /root/dest/ \;
+    - cp ./main.py /root/dest/ || true
+    - find . -wholename **/__init__.py -exec cp --parents \{\} /root/dest/ \;
+    - cd /root/dest
+    - git add -A && git commit -m "Commit in source pipeline at timestamp:`date +'%Y-%m-%d %H:%M:%S%z'`" --allow-empty
+    # - git reset $(git commit-tree HEAD^{tree} -m "Commit in source pipeline at timestamp:`date +'%Y-%m-%d %H:%M:%S%z'`")
+    - git push origin HEAD:main -f
+    - git reflog expire --expire-unreachable=now --all
+    - git gc --prune=now
+  only:
+    refs:
+      - main
