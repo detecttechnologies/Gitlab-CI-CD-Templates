@@ -35,7 +35,7 @@ setup-binfmt:
     refs:
       - main
 
-build-arm:
+build-aarch64:
   stage: build
   image:
     name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler:1.0-arm64
@@ -54,10 +54,29 @@ build-arm:
     refs:
       - main
 
+build-armv7:
+  stage: build
+  image:
+    name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler:1.0-armv7
+    entrypoint: [""]
+  needs: ["setup-binfmt"]
+  script:
+    - mkdir /home/user/load
+    - cp -R ./* /home/user/load/
+    - bash /home/user/helper/start.sh
+    - ls -al /home/user/load/
+    - cp -R /home/user/load/*.so ./
+  artifacts:
+    paths:
+      - ./*.so
+  only:
+    refs:
+      - main
+
 push-binaries:
   stage: push
   image: bitnami/git
-  needs: ["build-x86", "build-arm"]
+  needs: ["build-x86", "build-aarch64", "build-armv7"]
   script:
     # Setup SSH
     - mkdir ~/.ssh/
