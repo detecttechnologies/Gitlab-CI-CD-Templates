@@ -1,4 +1,4 @@
-# Compile and push python packages to Ops repos. 
+# Compile and push python packages to Ops repos.
 stages:
   - build
   - push
@@ -78,7 +78,8 @@ push-binaries:
   image: bitnami/git
   needs: ["build-x86", "build-aarch64", "build-armv7"]
   script:
-    # Setup SSH
+    - set -e
+    # Setup SSH and clone the source repo
     - mkdir ~/.ssh/
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - ssh-keyscan -t rsa $CI_SERVER_HOST >> ~/.ssh/known_hosts
@@ -87,24 +88,43 @@ push-binaries:
     - git config --global user.email "PlatformTeam@detecttechnologies.com"
     - git config --global user.name "DetectTechnologies CI"
     - git clone "${BUILD_OUTPUT_REPO}" /root/dest
-    # Copy outputs and commit
-    - cd /root/dest
-    - git reset --soft HEAD~1 || true
-    # Delete all py files and so files
-    - find . -wholename "**/*.py" -type f -delete
-    - find . -wholename "**/*.so" -type f -delete
-    - cd -
-    # Copy .so, main.py, __init__.py
     - ls -al .
-    - find . -wholename **/*.so -exec cp --parents \{\} /root/dest/ \;
-    - cp ./main.py /root/dest/ || true
-    - find . -wholename **/__init__.py -exec cp --parents \{\} /root/dest/ \;
-    - cd /root/dest
-    - git add -A && git commit -m "Commit in source pipeline at timestamp:`date +'%Y-%m-%d %H:%M:%S%z'`" --allow-empty
-    # - git reset $(git commit-tree HEAD^{tree} -m "Commit in source pipeline at timestamp:`date +'%Y-%m-%d %H:%M:%S%z'`")
-    - git push origin HEAD:main -f
-    - git reflog expire --expire-unreachable=now --all
-    - git gc --prune=now
+    # Setup a branch for every unique deployment footprint, push to each of them
+    - |
+      # Find all py and arch version combinations, use them as branches
+      branch_names=$(find . -wholename "**/*.so" | head -20 | awk -F '-' '{print $(NF-1)"-"$(NF-2)"-py"$(NF-3)}' | sort -u);
+
+      for branch in ${branch_names};
+      do
+        echo "-------------------------------------------"
+        echo "Now pushing branch ${branch}"
+        cd /root/dest;
+
+        # Switch to the branch (create if it doesn't exist), and soft reset to the previous commit;
+        git checkout --quiet ${branch} 2>/dev/null || git checkout -b ${branch};
+        git reset --soft HEAD~1 || true;
+
+        # Delete all py files and so files;
+        find . -wholename "**/*.py" -type f -delete;
+        find . -wholename "**/*.so" -type f -delete;
+
+        # From the build folder, copy the new .so files, main.py and all __init__.py's;
+        cd -;
+        file_name_pattern=$(echo ${branch} | awk -F '-' '{print $3"-"$2"-"$1}');  # Undo the reversing carried out while forming the branch_name
+        file_name_pattern=${file_name_pattern:2}    # Remove the 'py' at the start;
+        find . -wholename "**/*${file_name_pattern}*.so" -exec cp --parents \{\} /root/dest/ \;
+        cp ./main.py /root/dest/;
+        find . -wholename "**/__init__.py" -exec cp --parents \{\} /root/dest/ \;
+
+        # Push back the updated repository
+        cd /root/dest;
+        git add -A && git commit -m "Commit in source pipeline at timestamp:`date +'%Y-%m-%d %H:%M:%S%z'`" --allow-empty;
+        git reflog expire --expire-unreachable=now --all;
+        git gc --prune=now;
+        git push --quiet origin HEAD:${branch} -f;
+
+        cd -; # Switch back to the source repo before the next iteration
+      done
   only:
     refs:
       - main
