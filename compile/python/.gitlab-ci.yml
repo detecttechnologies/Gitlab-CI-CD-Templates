@@ -1,27 +1,3 @@
-# Compile and push python packages to Ops repos.
-stages:
-  - build
-  - push
-
-build-x86:
-  stage: build
-  image:
-    name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler:1.0-amd64
-    entrypoint: [""]
-  needs: []
-  script:
-    - mkdir /home/user/load
-    - cp -R ./* /home/user/load/
-    - bash /home/user/helper/start.sh
-    - ls -al /home/user/load/
-    - cp -R /home/user/load/*.so ./
-  artifacts:
-    paths:
-      - ./*.so
-  only:
-    refs:
-      - main
-
 setup-binfmt:
   stage: build
   image:
@@ -33,53 +9,100 @@ setup-binfmt:
     - docker run --rm --privileged docker/binfmt:820fdd95a9972a5308930a2bdfb8573dd4447ad3
   only:
     refs:
-      - main
-
-build-aarch64:
+      - test_branch
+      
+build-binaries:
   stage: build
-  image:
-    name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler:1.0-arm64
-    entrypoint: [""]
   needs: ["setup-binfmt"]
+  image: 
+    name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pythoncompiler:2.0-$PLATFORM-$VERSION
+    entrypoint:  []
+  before_script:
+   - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
+   - git submodule sync && git submodule update --init --recursive
   script:
-    - mkdir /home/user/load
-    - cp -R ./* /home/user/load/
-    - bash /home/user/helper/start.sh
-    - ls -al /home/user/load/
-    - cp -R /home/user/load/*.so ./
+    - ls -al .
+    - mkdir -p /app/user/load
+    - cp -R ./* /app/user/load
+    - cd /app/user/load
+    - |
+      # Exclude python files from cytonization
+      for file in $DELETE_BEFORE_COMPILING;
+        do
+          find . -wholename "$file" -exec rm -v "{}" \;
+      done
+    - cd -
+    - cd /app
+    - python3 py_compiler.py build_ext -b /app/user/load
+    - cd -
+    - |
+      cwd=$(pwd);
+      mkdir artifacts;
+      cd /app/user/load/;
+      
+      # Copy all compiled .so files to artifacts 
+      find . -wholename "**/*.so" -exec cp -v --parents \{\} $cwd/artifacts \;
   artifacts:
     paths:
-      - ./*.so
+      - artifacts/
+  parallel:
+    matrix:
+      - TAG: amd64
+        PLATFORM: amd64
+        VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
+      - TAG: armv8
+        PLATFORM: arm64
+        VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
+      - TAG: amd64
+        PLATFORM: armv7
+        VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
+  allow_failure: true
+  tags:
+    - $TAG
   only:
     refs:
-      - main
+      - test_branch
 
-build-armv7:
+copy-files:
   stage: build
-  image:
-    name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler:1.0-armv7
-    entrypoint: [""]
-  needs: ["setup-binfmt"]
+  image: bitnami/git
+  before_script:
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
+    - git submodule sync && git submodule update --init --recursive
   script:
-    - mkdir /home/user/load
-    - cp -R ./* /home/user/load/
-    - bash /home/user/helper/start.sh
-    - ls -al /home/user/load/
-    - cp -R /home/user/load/*.so ./
+    - ls -al .
+    - mkdir artifacts
+    - |
+      
+      # Copy files mentioned in FILES_TO_COPY variable to artifacts
+      for file in $FILES_TO_COPY;
+      do
+        if [[ "$file" == *"-->"* ]];
+          then
+            split=(${file//-->/ });
+            cp -R -v ${split[0]} artifacts/${split[1]};
+        else
+            find . -type f -wholename "$file*" -exec cp -R -v --parents \{\} artifacts \;
+        fi       
+      done
+      # Copy all __init__ files to artifacts 
+      find . -wholename "**/__init__.py" -exec cp -v --parents \{\} artifacts \;
   artifacts:
     paths:
-      - ./*.so
+      - artifacts/  
   only:
     refs:
-      - main
+      - test_branch
 
 push-binaries:
   stage: push
   image: bitnami/git
-  needs: ["build-x86", "build-aarch64", "build-armv7"]
-  script:
+  only:
+    refs:
+      - test_branch
+  before_script:
     - set -e
-    # Setup SSH and clone the source repo
+    # Setup SSH Authentication
     - mkdir ~/.ssh/
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - ssh-keyscan -t rsa $CI_SERVER_HOST >> ~/.ssh/known_hosts
@@ -87,44 +110,85 @@ push-binaries:
     - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "PlatformTeam@detecttechnologies.com"
     - git config --global user.name "DetectTechnologies CI"
-    - git clone "${BUILD_OUTPUT_REPO}" /root/dest
+  script:
     - ls -al .
+    # Copy files from artifacts to their original distination and remove artifacts folder
+    - |
+      cwd=$(pwd);
+      cd artifacts;
+      find . -name "**" -exec cp -R --parents \{\} $cwd/ \;
+      cd -;
+      rm -rf artifacts;
+    # Clone destination repo to make it available as local inside pipeline
+    - git clone "${BUILD_OUTPUT_REPO}" /root/dest
+    # Remove branches from remote if the variable is assigned "true"
+    - |
+      cd /root/dest;
+      if [ $REMOVE_BRANCHES == "true" ];
+      then
+        git branch -r | awk -F/ '/\/linux/{print $2}' | xargs -I {} git push origin :{};
+      fi
+      cd -;
     # Setup a branch for every unique deployment footprint, push to each of them
     - |
       # Find all py and arch version combinations, use them as branches
       branch_names=$(find . -wholename "**/*.so" | head -20 | awk -F '-' '{print $(NF-1)"-"$(NF-2)"-py"$(NF-3)}' | sort -u);
-
       for branch in ${branch_names};
       do
-        echo "-------------------------------------------"
-        echo "Now pushing branch ${branch}"
+        echo "-------------------------------------------";
+        echo "Now pushing branch ${branch}";
         cd /root/dest;
-
         # Switch to the branch (create if it doesn't exist), and soft reset to the previous commit;
         git checkout --quiet ${branch} 2>/dev/null || git checkout -b ${branch};
         git reset --soft HEAD~1 || true;
-
-        # Delete all py files and so files;
-        find . -wholename "**/*.py" -type f -delete;
-        find . -wholename "**/*.so" -type f -delete;
-
+        
+        #Delete all files before pushing
+        git rm -rf *;
+        git commit -m "removing previous builds";
+        git push --quiet origin HEAD:${branch} -f;
+        
         # From the build folder, copy the new .so files, main.py and all __init__.py's;
         cd -;
         file_name_pattern=$(echo ${branch} | awk -F '-' '{print $3"-"$2"-"$1}');  # Undo the reversing carried out while forming the branch_name
-        file_name_pattern=${file_name_pattern:2}    # Remove the 'py' at the start;
-        find . -wholename "**/*${file_name_pattern}*.so" -exec cp --parents \{\} /root/dest/ \;
-        cp ./main.py /root/dest/;
+        file_name_pattern=${file_name_pattern:2};    # Remove the 'py' at the start;
+        echo "${file_name_pattern}";
+        find . -wholename "**/*${file_name_pattern}*.so" ! -wholename "./iva.**.so" -exec cp --parents \{\} /root/dest/ \;
+        cp ./main.py /root/dest/ || true;
         find . -wholename "**/__init__.py" -exec cp --parents \{\} /root/dest/ \;
-
+        
+        # IVA repo specific code
+        cp ./iva.py /root/dest/ || true;
+        
+        # From the build folder, copy the files and folders mentioned in variable "FILES_TO_COPY" while ignoring .py and .so files;
+        for file in $FILES_TO_COPY;
+          do
+          if [[ "$file" == *"-->"* ]];
+          then
+            echo "hi";
+            split=(${file//-->/ });
+            cp -R -v ${split[1]} /root/dest/;
+          else
+            find . -type f -wholename "*$file*" ! -wholename "./*.so" ! -wholename "./*.py" -exec cp -R --parents \{\} /root/dest/ \;
+          fi
+          done
+        
+        #Rename filenames to original names
+        cd /root/dest;
+        for f in $(find . -type f -wholename "./**.so"); do
+           mv -v "$f" "${f/.cpython-${file_name_pattern}-gnu./.}";
+        done
+        
+        # Get timestamp of last commit from source repo
+        cd -;
+        timestamp=$(git log -1 --format=%cd --date=local);
+        
         # Push back the updated repository
         cd /root/dest;
-        git add -A && git commit -m "Commit in source pipeline at timestamp:`date +'%Y-%m-%d %H:%M:%S%z'`" --allow-empty;
+        git add -A && git commit -m "Commit in source pipeline at timestamp:$timestamp" --allow-empty;
         git reflog expire --expire-unreachable=now --all;
         git gc --prune=now;
+        # Merge all commits in one
+        git reset $(git commit-tree HEAD^{tree} -m "Commit in source pipeline at timestamp:$timestamp");
         git push --quiet origin HEAD:${branch} -f;
-
         cd -; # Switch back to the source repo before the next iteration
       done
-  only:
-    refs:
-      - main
