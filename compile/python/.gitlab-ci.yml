@@ -10,6 +10,7 @@ setup-binfmt:
   only:
     refs:
       - test_branch
+      - main
       
 build-binaries:
   stage: build
@@ -62,6 +63,7 @@ build-binaries:
   only:
     refs:
       - test_branch
+      - main
 
 copy-files:
   stage: build
@@ -93,6 +95,7 @@ copy-files:
   only:
     refs:
       - test_branch
+      - main
 
 push-binaries:
   stage: push
@@ -100,6 +103,7 @@ push-binaries:
   only:
     refs:
       - test_branch
+      - main
   before_script:
     - set -e
     # Setup SSH Authentication
