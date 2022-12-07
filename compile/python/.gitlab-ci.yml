@@ -9,7 +9,6 @@ setup-binfmt:
     - docker run --rm --privileged docker/binfmt:820fdd95a9972a5308930a2bdfb8573dd4447ad3
   only:
     refs:
-      - test_branch
       - main
       
 build-binaries:
@@ -62,7 +61,6 @@ build-binaries:
     - $TAG
   only:
     refs:
-      - test_branch
       - main
 
 copy-files:
@@ -94,7 +92,6 @@ copy-files:
       - artifacts/  
   only:
     refs:
-      - test_branch
       - main
 
 push-binaries:
@@ -102,7 +99,6 @@ push-binaries:
   image: bitnami/git
   only:
     refs:
-      - test_branch
       - main
   before_script:
     - set -e
