@@ -4,6 +4,34 @@ Compiles python files for distribution in different python versions and CPU achi
 
 NOTE: The files are not statically compiled, and hence any pypi dependencies will still have to be installed
 
+## Pipeline configuration for source repo
+
+1. **Choose version and architecture**. By default, the pipeline tries to build all python versions and cpu architectures combination. It can be modified to build specific versions by modifying the snippet below and adding it to `.gitlab-ci.yml` file of source repo. 
+    - `TAG` refers to gitlab-runner being used to run the job
+    - `PLATFORM` refers to architecture
+    - `VERSION` refers to python versions
+    ```yaml
+    build-binaries:
+        parallel:
+        matrix:
+          - TAG: amd64
+            PLATFORM: amd64
+            VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
+          - TAG: armv8
+            PLATFORM: arm64
+            VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
+          - TAG: amd64
+            PLATFORM: armv7
+            VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
+    ```
+2. **Variables**
+    - `REMOVE_BRANCHES: "true"` removes all destination branches except main before pushing
+    - `GIT_STRATEGY: clone` !Important as it makes sure that source repo doesn't contain cached files
+    - `GIT_DEPTH: 1` can be set accordingly
+    - `GIT_SUBMODULE_DEPTH: 1` can be set accordingly
+    - `FILES_TO_COPY`: Use this as gitlab multiline variable and provide full path of files/folders that needs to be copied to destination. No `.py` or `.so` files will be copied using this variable. It will skip such files, even if you give entire folder to copy.
+    - `DELETE_BEFORE_COMPILING`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be deleted before cythonization
+
 ## Troubleshooting
 
 1. If you see this error in the CI pipeline FOR the `build-armv7` job:
