@@ -53,7 +53,7 @@ build-binaries:
       - TAG: armv8
         PLATFORM: arm64
         VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
-      - TAG: amd64
+      - TAG: armv8
         PLATFORM: armv7
         VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
   allow_failure: true
@@ -175,7 +175,7 @@ push-binaries:
         #Rename filenames to original names
         cd /root/dest;
         for f in $(find . -type f -wholename "./**.so"); do
-           mv -v "$f" "${f/.cpython-${file_name_pattern}-gnu./.}";
+           mv -v "$f" "${f/.cpython-${file_name_pattern}-gnu./.}" || mv -v "$f" "${f/.cpython-${file_name_pattern}-gnueabihf./.}";
         done
         
         # Get timestamp of last commit from source repo

@@ -20,7 +20,7 @@ NOTE: The files are not statically compiled, and hence any pypi dependencies wil
           - TAG: armv8
             PLATFORM: arm64
             VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
-          - TAG: amd64
+          - TAG: armv8
             PLATFORM: armv7
             VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
     ```
