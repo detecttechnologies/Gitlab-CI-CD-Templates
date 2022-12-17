@@ -1,0 +1,54 @@
+copy-files:
+  stage: copy_to_central_repo
+  image: bitnami/git
+  script:
+    - ls -al .
+    - set -x
+    - echo "$CI_REPOSITORY_URL"
+    # split repo path after DetectTechnologies
+    - arrIN=(${CI_REPOSITORY_URL//"DetectTechnologies/"/ })
+    # split repo path before .git
+    - arrIN1=(${arrIN[1]//"."/ })
+    - source_repo_path=${arrIN1[0]}
+    - echo "${source_repo_path}"
+    # create a directory with source path 
+    - mkdir -p ${source_repo_path}
+    - manifest_path=${source_repo_path//"/"/_}
+    # create directory manifests and copy manifest by adding source-path in manifest filename
+    - mkdir -p manifests
+    - cp -v manifest.txt manifests/manifest_${manifest_path}.txt
+    - |
+      
+      # Read manifest file and get source and destination, then copy accordingly 
+      cat manifest.txt | while read line
+      do
+        if [[ "$line" == *"-->"* ]];
+          then
+            split=(${line//-->/ });
+            source=${split[0]};
+            destination=${split[1]};
+            if [[ "$destination" == *"/"* ]];
+            then
+              path="${destination%/*}"
+              file="${destination##*/}";
+              mkdir -p ${path} && cp -R -v ${source} ${path}/${file};
+            fi
+        fi
+      done
+
+    - git config --global user.email "PlatformTeam@detecttechnologies.com"
+    - git config --global user.name "Detect Gitlab Bot"
+    - git clone https://oauth2:$PUSH_TOKEN@gitlab.com/DetectTechnologies/Platform/CI-CD-Pipelines/wikijs-demo-pipeline/demo-central.git /root/dest
+    - cd /root/dest
+    - ls -al .
+    - cd -
+    # find files saved in new path and manifest file and copy to /root/dest and push to central repo
+    - find ${source_repo_path} -type f -wholename "*" -exec cp -R -v --parents \{\} /root/dest/ \;
+    - find manifests -type f -wholename "*" -exec cp -R -v --parents \{\} /root/dest/ \;
+    - cd /root/dest
+    - git add -A && git commit -m "Commit in source pipeline for ${source_repo_path}" --allow-empty;
+    - git push origin HEAD:main -f;
+  only:
+    refs:
+      - main
+
