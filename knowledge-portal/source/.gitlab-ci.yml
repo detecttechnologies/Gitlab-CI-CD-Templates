@@ -3,14 +3,11 @@ copy-files:
   image: bitnami/git
   script:
     - ls -al .
-    - set -x
-    - echo "$CI_REPOSITORY_URL"
     # split repo path after DetectTechnologies
     - arrIN=(${CI_REPOSITORY_URL//"DetectTechnologies/"/ })
     # split repo path before .git
     - arrIN1=(${arrIN[1]//"."/ })
     - source_repo_path=${arrIN1[0]}
-    - echo "${source_repo_path}"
     # create a directory with source path 
     - mkdir -p ${source_repo_path}
     - manifest_path=${source_repo_path//"/"/_}
