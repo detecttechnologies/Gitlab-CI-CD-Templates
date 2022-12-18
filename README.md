@@ -15,6 +15,6 @@ To include `python-comiler` jobs, See [README for compile/python](compile/README
 
 There are two `.gitlab-ci.yml` files which serve as source and central pipelines. `central pipeline` is already setup and all you have to do is to setup the `source pipeline` in your existing `.gitlab-ci.yml` file.
 
-- To include `source-pipeline` jobs, See [README for knowledge-portal/source](compile/README.md).
+- To include `source-pipeline` jobs, See [README for knowledge-portal/source](knowledge-portal/source/README.md).
 
 
