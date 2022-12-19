@@ -1,0 +1,33 @@
+merge-request:
+    stage: merge_request_to_source
+    image: python
+    script:
+        - git config --global user.email "Platformteam@detecttechnologies.com"
+        - git config --global user.name "Detect Gitlab Bot"
+        - ls -al .
+        - |
+        
+           # Check and reset to previous commit until commit message contains "docs:" keyword; else break out of loop  
+            while true
+            do
+                commit_message=$(git log -1 --format=%B);
+                if [[ ${commit_message} == *"docs:"* ]]
+                then
+                    git reset --soft HEAD~1;
+                else
+                    break;
+                fi
+            done
+        
+        # changed files can be obtained by git diff between latest commit and unstaged area
+        - changed_files=$(git diff --name-only HEAD)
+        
+        # Reverse the git reset and move files to staged as we will need latest files 
+        - git add -A && git commit -m "docs:reversing soft reset as now we have the filenames" || true  
+        - |
+            if [[ $changed_files ]]
+            then
+                python reverse_mapping.py $changed_files $BOT_ACCESS_TOKEN
+            else
+                echo "This is not a commit that happened through knowledge portal"
+            fi
