@@ -44,7 +44,7 @@ You will also have to configure some variables. Please check out the next sectio
     - `FILES_TO_COPY`: Use this as gitlab multiline variable and provide full path of files/folders that needs to be copied to destination. No `.py` or `.so` files will be copied using this variable. It will skip such files, even if you give entire folder to copy.
     - (Optional) `DELETE_BEFORE_COMPILING`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be deleted before cythonization
 
-    Below is the configuration for `Video Relay - Smart` repo variables for reference
+    Below is a sample configuration for a repository where you might have a few `.md` and a few `.yml` files to copy over in addition to all python files that would anyways be compiled
 
     ```yaml
     variables:
@@ -52,16 +52,9 @@ You will also have to configure some variables. Please check out the next sectio
         FILES_TO_COPY: |
             ./Dockerfile
             ./docker-compose.yml
-            ./docker-compose.production.yml
             ./USAGE.md
             ./TEST.md
             ./README.md
-            ./refresh_setup.sh
-            ./requirements.txt
-            ./misc/config.toml
-            ./CHANGELOG.md
-            ./refresh_setup.sh
-            ./test/README.md
         GIT_STRATEGY: clone
         GIT_DEPTH: 1
         REMOVE_BRANCHES: "true"
