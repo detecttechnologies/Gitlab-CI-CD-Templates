@@ -4,9 +4,21 @@ Compiles python files for distribution in different python versions and CPU achi
 
 NOTE: The files are not statically compiled, and hence any pypi dependencies will still have to be installed
 
+You will have to modify the existing `gitlab-ci.yml` file to include:
+
+```yaml
+    stages:
+        - build
+        - push
+    include:
+        - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/.gitlab-ci.yml'
+
+```
+You will also have to configure some variables. Please check out the next section.
+
 ## Pipeline configuration for source repo
 
-1. **Choose version and architecture**. By default, the pipeline tries to build all python versions and cpu architectures combination. It can be modified to build specific versions by modifying the snippet below and adding it to `.gitlab-ci.yml` file of source repo. 
+1. **Choose version and architecture (optional)**. By default, the pipeline tries to build all python versions and cpu architectures combination. It can be modified to build specific versions by modifying the snippet below and adding it to `.gitlab-ci.yml` file of source repo. 
     - `TAG` refers to gitlab-runner being used to run the job
     - `PLATFORM` refers to architecture
     - `VERSION` refers to python versions
@@ -26,11 +38,27 @@ NOTE: The files are not statically compiled, and hence any pypi dependencies wil
     ```
 2. **Variables**
     - `REMOVE_BRANCHES: "true"` removes all destination branches except main before pushing
-    - `GIT_STRATEGY: clone` !Important as it makes sure that source repo doesn't contain cached files
-    - `GIT_DEPTH: 1` can be set accordingly
+    - (Required) `GIT_STRATEGY: clone` !Important as it makes sure that source repo doesn't contain cached files
+    - `GIT_DEPTH: 1` can be set accordingly. By default it is set to 20 by gitlab.
     - `GIT_SUBMODULE_DEPTH: 1` can be set accordingly
     - `FILES_TO_COPY`: Use this as gitlab multiline variable and provide full path of files/folders that needs to be copied to destination. No `.py` or `.so` files will be copied using this variable. It will skip such files, even if you give entire folder to copy.
-    - `DELETE_BEFORE_COMPILING`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be deleted before cythonization
+    - (Optional) `DELETE_BEFORE_COMPILING`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be deleted before cythonization
+
+    Below is a sample configuration for a repository where you might have a few `.md` and a few `.yml` files to copy over in addition to all python files that would anyways be compiled
+
+    ```yaml
+    variables:
+        # pycompile variables
+        FILES_TO_COPY: |
+            ./Dockerfile
+            ./docker-compose.yml
+            ./USAGE.md
+            ./TEST.md
+            ./README.md
+        GIT_STRATEGY: clone
+        GIT_DEPTH: 1
+        REMOVE_BRANCHES: "true"
+    ```
 
 ## Troubleshooting
 
