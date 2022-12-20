@@ -14,6 +14,5 @@
 
     # Gitlab SAST variables
     variables:
-        SAST_EXCLUDED_ANALYZERS: "brakeman,eslint,flawfinder,gosec,kubesec,mobsf,nodejs-scan,phpcs-security-audit,pmd-apex,security-code-scan,semgrep,sobelow,spotbugs"
         SECURE_LOG_LEVEL: "info"
 ```
