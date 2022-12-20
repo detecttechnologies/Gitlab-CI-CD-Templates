@@ -12,6 +12,8 @@ You will have to modify the existing `gitlab-ci.yml` file to include:
         - push
     include:
         - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/.gitlab-ci.yml'
+    variables:
+        GIT_STRATEGY: clone
 
 ```
 You will also have to configure some variables. Please check out the next section.
