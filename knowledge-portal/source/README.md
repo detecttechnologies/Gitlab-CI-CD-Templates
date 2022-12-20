@@ -19,10 +19,13 @@ You will have to modify the existing `gitlab-ci.yml` file to include:
     * For maintainers: The `CENTRAL_GIT_PUSH_URL` will be of the form: `https://oauth2:$PUSH_TOKEN@gitlab.com/<org-name>/<path-to-central-git-repo>.git`
 4. Click on `Add variable` button to confirm changes. 
 
+
+> Ideally the steps of this section can be performed on the overall gitlab instance, so that it need not be replicated for every repo.
+
 ## Creating `manifest.txt` file
 
-- The manifest file keeps track of README files you choose to import to `central-repo`.
-- It also allows renaming a file and import copies of same file to separate destination folders.   
+- The manifest file keeps track of files you choose to import to `central-repo`.
+- It also allows renaming a file and copying the same file to separate destination folders in case you would like to have different views of the same underlying data through force-duplication.
 - The `docs-manifest.txt` file should be created at the root of your project's repository.
 
 An example of a `docs-manifest.txt` file is added below:
