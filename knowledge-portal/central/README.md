@@ -4,7 +4,7 @@
 
 ```yaml
 stages:
-    - merge_request_to_source
+    - push
 include:
     - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowlwdge-portal/central/.gitlab-ci.yml'
 ```

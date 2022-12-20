@@ -1,5 +1,5 @@
-copy-files:
-  stage: copy_to_central_repo
+copy-to-central-git:
+  stage: push
   image: bitnami/git
   script:
     - ls -al .
@@ -13,11 +13,11 @@ copy-files:
     - manifest_path=${source_repo_path//"/"/_}
     # create directory manifests and copy manifest by adding source-path in manifest filename
     - mkdir -p manifests
-    - cp -v manifest.txt manifests/manifest_${manifest_path}.txt
+    - cp -v docs-manifest.txt manifests/docs-manifest_${manifest_path}.txt
     - |
       
       # Read manifest file and get source and destination, then copy accordingly 
-      cat manifest.txt | while read line
+      cat docs-manifest.txt | while read line
       do
         if [[ "$line" == *"-->"* ]];
           then
@@ -35,7 +35,7 @@ copy-files:
 
     - git config --global user.email "PlatformTeam@detecttechnologies.com"
     - git config --global user.name "Detect Gitlab Bot"
-    - git clone https://oauth2:$PUSH_TOKEN@gitlab.com/DetectTechnologies/Platform/CI-CD-Pipelines/wikijs-demo-pipeline/demo-central.git /root/dest
+    - git clone $CENTRAL_GIT_PUSH_URL /root/dest
     - cd /root/dest
     - ls -al .
     - cd -

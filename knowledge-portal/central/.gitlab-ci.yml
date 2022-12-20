@@ -1,5 +1,5 @@
-merge-request:
-    stage: merge_request_to_source
+merge-request-to-source:
+    stage: push
     image: python
     script:
         - git config --global user.email "Platformteam@detecttechnologies.com"
