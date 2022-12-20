@@ -6,7 +6,7 @@
 stages:
     - push
 include:
-    - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowlwdge-portal/central/.gitlab-ci.yml'
+    - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/.gitlab-ci.yml'
 ```
 
 ## Setting up Access Token in central repository
