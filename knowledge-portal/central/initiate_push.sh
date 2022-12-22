@@ -9,7 +9,7 @@ then
     # Reverse the git reset and move files to staged as we will need latest files 
     git add -A && git commit -m "docs:reversing soft reset as now we have the filenames"
 
-    # Run python script to get output in format "source_repo_name:rhs_path-->lhs_path"
+    # Run python script to get output in format "source_repo_name:filepath_central_gitrepo-->filepath_source_gitrepo"
     output=$(python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/reverse_mapping.py)" $changed_files)
     
     # Create an array to keep track of all unique source repos in which files have been modified

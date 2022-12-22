@@ -14,7 +14,7 @@ include:
 1. Go to `Settings >> Access Tokens`.
 2. Set `Token name = PUSH_TOKEN`. This is important and you can't choose any other name without modifying the source pipeline as well.
 3. Select the role `Maintainer` and `write_repository` as the scope of token.
-4. `Create project access token` will create a unique token for you that can then be shared with people setting up people setting up individual `source` pipelines.
+4. `Create project access token` will create a unique token for you that can then be shared with `maintainers` setting up individual `source` pipelines.
 
 ## Working of pipeline
 
