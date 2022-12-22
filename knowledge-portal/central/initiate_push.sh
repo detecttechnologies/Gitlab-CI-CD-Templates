@@ -10,7 +10,7 @@ then
     git add -A && git commit -m "docs:reversing soft reset as now we have the filenames"
 
     # Run python script to get output in format "source_repo_name:rhs_path-->lhs_path"
-    output=$(python reverse_mapping.py $changed_files)
+    output=$(python3 -c "$(curl -fsSL https://github.com/avinashtrivedi11/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/reverse_mapping.py)" $changed_files)
     
     # Create an array to keep track of all unique source repos in which files have been modified
     declare -a source_repo_array
