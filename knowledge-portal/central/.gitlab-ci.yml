@@ -17,7 +17,7 @@ merge-request-to-source:
                 fi
             done
              
-        - ./initiate_push.sh 
+        -  sh -c "$(curl -fsSL https://github.com/avinashtrivedi11/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/initiate_push.sh)"
     only:
         refs:
             - main
