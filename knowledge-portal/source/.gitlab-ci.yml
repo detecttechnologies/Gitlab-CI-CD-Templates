@@ -2,19 +2,20 @@ copy-to-central-git:
   stage: push
   image: bitnami/git
   script:
+    - echo "URL:${CI_REPOSITORY_URL}"
     - |
-      # Extract the path to the manifest file and the source-repo's path
-      arrIN=(${CI_REPOSITORY_URL//"DetectTechnologies/"/ })   # split repo path after DetectTechnologies
-      arrIN1=(${arrIN[1]//"."/ })                             # split repo path before .git
-      source_repo_path=${arrIN1[0]}
-      manifest_path=${source_repo_path//"/"/_}
-      echo "Done, source-repo's path: ${source_repo_path}, manifest path: ${manifest_path}"
+      # Extract the unique path (Subpath) from Repository url        
+      unique_path_temp1=(${CI_REPOSITORY_URL//"gitlab.com/"/ })           # split after 'gitlab.com/' 
+      unique_path_temp2=(${unique_path_temp1[1]//"."/ })                  # split before .git
+      unique_path="$( cut -d '/' -f 2- <<< "${unique_path_temp2[0]}" )"   # split after first '/'
+      manifest_suffix=${unique_path//"/"/_}
+      echo "Done, source-repo's path: ${unique_path}, manifest suffix: ${manifest_suffix}"
 
     - |
       # Clone the destination repo, copy the source-git's manifest to central-git by adding source-path in manifest filename
       git clone $CENTRAL_GIT_PUSH_URL /root/dest
       mkdir -p /root/dest/manifests
-      cp -v docs-manifest.txt /root/dest/manifests/docs-manifest_${manifest_path}.txt
+      cp -v docs-manifest.txt /root/dest/manifests/docs-manifest_${manifest_suffix}.txt
       echo "Done"
 
     - |
@@ -42,7 +43,7 @@ copy-to-central-git:
       cd /root/dest
       git config --global user.email "PlatformTeam@detecttechnologies.com"
       git config --global user.name "Detect Gitlab Bot"
-      git add -A && git commit -m "Commit in source pipeline for ${source_repo_path}" --allow-empty;
+      git add -A && git commit -m "Commit in source pipeline for ${unique_path}" --allow-empty;
       git push origin HEAD:main -f;
       echo "Done"
 
