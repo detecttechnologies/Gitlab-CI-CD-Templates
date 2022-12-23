@@ -16,6 +16,13 @@ include:
 3. Select the role `Maintainer` and `write_repository` as the scope of token.
 4. `Create project access token` will create a unique token for you that can then be shared with `maintainers` setting up individual `source` pipelines.
 
+## Setting up BOT_ACCESS_TOKEN variable 
+
+1. Go to `Settings >> CI/CD >> Variables`
+2. Click on `Add variable`. 
+3. Give the name `BOT_ACCESS_TOKEN` in `Key` field and `Value` field will be provided by your maintainers.
+4. Click on `Add variable` button to confirm changes.
+
 ## Working of pipeline
 
 ### 1. If same file from `source` exists in multiple locations(duplicates) at `central`, and both files are modified simultaneously
