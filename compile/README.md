@@ -12,6 +12,8 @@ You will have to modify the existing `gitlab-ci.yml` file to include:
         - push
     include:
         - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/.gitlab-ci.yml'
+    variables:
+        GIT_STRATEGY: clone
 
 ```
 You will also have to configure some variables. Please check out the next section.
@@ -42,7 +44,7 @@ You will also have to configure some variables. Please check out the next sectio
     - `GIT_DEPTH: 1` can be set accordingly. By default it is set to 20 by gitlab.
     - `GIT_SUBMODULE_DEPTH: 1` can be set accordingly
     - `FILES_TO_COPY`: Use this as gitlab multiline variable and provide full path of files/folders that needs to be copied to destination. No `.py` or `.so` files will be copied using this variable. It will skip such files, even if you give entire folder to copy.
-    - (Optional) `DELETE_BEFORE_COMPILING`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be deleted before cythonization
+    - (Optional) `DELETE_BEFORE_COMPILING`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be deleted before compilation.
 
     Below is a sample configuration for a repository where you might have a few `.md` and a few `.yml` files to copy over in addition to all python files that would anyways be compiled
 
