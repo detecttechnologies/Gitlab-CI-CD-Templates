@@ -1,4 +1,5 @@
 dummy-job:
+  stage: push
   script: echo "Dummy Job!"
 
 copy-to-central-git:
