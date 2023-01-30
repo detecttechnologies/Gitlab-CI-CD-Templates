@@ -1,3 +1,6 @@
+dummy-job:
+  script: echo "Dummy Job!"
+
 copy-to-central-git:
   stage: push
   image: bitnami/git
