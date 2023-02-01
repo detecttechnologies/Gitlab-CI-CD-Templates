@@ -1,52 +1,10 @@
 copy-to-central-git:
   stage: push
-  image: bitnami/git
+  image: python
   script:
-    - echo "URL:${CI_REPOSITORY_URL}"
-    - |
-      # Extract the unique path (Subpath) from Repository url        
-      unique_path_temp1=(${CI_REPOSITORY_URL//"gitlab.com/"/ })           # split after 'gitlab.com/' 
-      unique_path_temp2=(${unique_path_temp1[1]//"."/ })                  # split before .git
-      unique_path="$( cut -d '/' -f 2- <<< "${unique_path_temp2[0]}" )"   # split after first '/'
-      manifest_suffix=${unique_path//"/"/_}
-      echo "Done, source-repo's path: ${unique_path}, manifest suffix: ${manifest_suffix}"
-
-    - |
-      # Clone the destination repo, copy the source-git's manifest to central-git by adding source-path in manifest filename
-      git clone $CENTRAL_GIT_PUSH_URL /root/dest
-      mkdir -p /root/dest/manifests
-      cp -v docs-manifest.txt /root/dest/manifests/docs-manifest_${manifest_suffix}.txt
-      echo "Done"
-
-    - |
-      # Read every line of the manifest file, and copy it over with the required central-git mapping
-      cat docs-manifest.txt | while read line
-      do
-        if [[ "$line" == *"-->"* ]];
-          then
-            split=(${line//-->/ });
-            source=${split[0]};
-            destination=${split[1]};
-            if [[ "$destination" == *"/"* ]];
-            then
-              path="${destination%/*}"
-              file="${destination##*/}";
-              mkdir -p /root/dest/${path}   # Ensure the destination folder exists at central-git
-              cp -R -v ${source} /root/dest/${path}/${file};    # Copy the source file to the required prefix at central-git
-            fi
-        fi
-      done
-      echo "Done"
-
-    - |
-      # Push back to central-git with the updated changes
-      cd /root/dest
-      git config --global user.email "PlatformTeam@detecttechnologies.com"
-      git config --global user.name "Detect Gitlab Bot"
-      git add -A && git commit -m "Commit in source pipeline for ${unique_path}" --allow-empty;
-      git push origin HEAD:main -f;
-      echo "Done"
-
-  only:
-    refs:
-      - main
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/source/initiate-push-to-central.sh)"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: always

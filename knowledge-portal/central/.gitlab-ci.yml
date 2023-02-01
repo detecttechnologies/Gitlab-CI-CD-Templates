@@ -4,20 +4,7 @@ merge-request-to-source:
     script:
         - git config --global user.email "Platformteam@detecttechnologies.com"
         - git config --global user.name "Detect Gitlab Bot"
-        - |
-           # Check and reset to previous commit until commit message contains "docs:" keyword; else break out of loop  
-            while true
-            do
-                commit_message=$(git log -1 --format=%B);
-                if [[ ${commit_message} == *"docs:"* ]]
-                then
-                    git reset --soft HEAD~1;
-                else
-                    break;
-                fi
-            done
-             
-        -  bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/initiate_push.sh)"
+        - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/initiate-push-to-source.sh)"
     only:
         refs:
             - main
