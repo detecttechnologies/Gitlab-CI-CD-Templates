@@ -100,17 +100,16 @@ push-binaries:
   only:
     refs:
       - main
-  before_script:
-    - set -e
+    
+  script:
     # Setup SSH Authentication
-    - mkdir ~/.ssh/
+    - mkdir -p ~/.ssh/
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - ssh-keyscan -t rsa $CI_SERVER_HOST >> ~/.ssh/known_hosts
     - echo "${SSH_PUSH_KEY}" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - git config --global user.email "PlatformTeam@detecttechnologies.com"
     - git config --global user.name "DetectTechnologies CI"
-  script:
     - ls -al .
     # Copy files from artifacts to their original distination and remove artifacts folder
     - |
@@ -124,7 +123,7 @@ push-binaries:
     # Remove branches from remote if the variable is assigned "true"
     - |
       cd /root/dest;
-      if [ $REMOVE_BRANCHES == "true" ];
+      if [[ $REMOVE_BRANCHES == "true" ]];
       then
         git branch -r | awk -F/ '/\/linux/{print $2}' | xargs -I {} git push origin :{};
       fi
@@ -132,7 +131,7 @@ push-binaries:
     # Setup a branch for every unique deployment footprint, push to each of them
     - |
       # Find all py and arch version combinations, use them as branches
-      branch_names=$(find . -wholename "**/*.so" | head -20 | awk -F '-' '{print $(NF-1)"-"$(NF-2)"-py"$(NF-3)}' | sort -u);
+      branch_names=$(find . -wholename "**/*.so" | sort -u | head -20 | awk -F '-' '{print $(NF-1)"-"$(NF-2)"-py"$(NF-3)}' | sort -u);
       for branch in ${branch_names};
       do
         echo "-------------------------------------------";
