@@ -1,118 +1,242 @@
 import os
 import sys
 from glob import glob
+import toml
+import re
+import shutil
 
-# Max filesize to be copied over to central
+MANIFEST_FILE = "docs-manifest.toml"
 FILESIZE_LIMIT = 500
+SUPPORTED_FILE_TYPES = (".md", ".jpg", ".png", ".gif", ".svg", ".ico")
 
-# Check if folder copy scenario; if yes, get all files in the folder recursively
-def check_for_folders(source_paths):
-    folder_mappings = {}
-    # Folder mappings expanded to their corresponding recursive file mappings
-    for source_path in source_paths:
-        # Check if source_path is a folder
-        if os.path.exists(source_path):
-            if os.path.isdir(source_path):
-                if source_path.endswith("/"):
-                    mycwd = os.getcwd()
-                    os.chdir(source_path)
-                    files = glob('**/*.*', recursive=True)
-                    os.chdir(mycwd)
-                    folder_mappings[source_path] = files
-                else:
-                    sys.exit(f"Check failed! This folder: {source_path} path doesn't end with (/)")
-        else:
-            sys.exit(f"Check failed! This file/folder: {source_path} mentioned in manifest file doesn't exist or you have not ended your folder copy with (/)")
-    return folder_mappings
+def load_manifest(manifest_file):
+    manifest_json = toml.load(manifest_file)
+    mappings = manifest_json["includes"]
+    exclude_files = manifest_json["excludes"]["exclude_files"]
+    return mappings, exclude_files
 
+def get_md_file_paths(source_path):
+    md_files = glob(os.path.join(source_path, "**/*.md"), recursive=True)
+    return md_files
 
-# source files to delete before copying
-def remove_paths(mappings, source_paths_to_remove):
-    
-    current_source_paths = list(mappings.values())
-    folder_mappings = check_for_folders(current_source_paths)
-   
-   # Update mappings: file-->file mapping from folder
-    for source_path in list(folder_mappings.keys()):
-        central_paths = [i for i in mappings if mappings[i]==source_path]
-        for central_path in central_paths:
-            for file in folder_mappings[source_path]:
-                mappings[f"{central_path}{file}"] = f"{source_path}{file}"
-            del mappings[central_path]
-    # Update mappings by deleting keys mentioned in source_paths to remove
-    for source_path in source_paths_to_remove:
-        if source_path in list(mappings.values()):
-            central_paths = [i for i in mappings if mappings[i]==source_path]
-            if central_path:
-                for central_path in central_paths:
-                    del mappings[central_path]
-    return mappings
-
-# Check for spaces in mappings
-def check_for_spaces(mappings):
-    mappings_with_spaces = {}
-    for mapping in list(mappings.keys()):
-        if " " in mapping or " " in mappings[mapping]:
-            mappings_with_spaces[mapping] = mappings[mapping]
-    if mappings_with_spaces:
-        sys.exit(f"Check failed! Mappings have spaces: {mappings_with_spaces}")
+def is_valid_path(source_path):
+    if not os.path.exists(source_path):
+        sys.exit(f"Error: {source_path} doesn't exist")
+    elif not source_path.endswith(SUPPORTED_FILE_TYPES) and not os.path.isdir(source_path):
+        sys.exit(f"Error: {source_path} is an unsupported file type.")
+    elif os.path.isdir(source_path) and not source_path.endswith("/"):
+        sys.exit(f"Error: For {source_path}, mapping should end with / as it is a folder mapping.")
     else:
-        return mappings
+        return True
 
-# Check filsize for source mappings 
-def check_filesize(mappings, size):
-    source_paths = list(mappings.values())
-    for source_path in source_paths:
-        if source_path.startswith("/"):
-            source_path = source_path.split("/")[1:]
-            source_path = "/".join(source_path)
-        file_size = (os.stat(source_path).st_size)/1000
-        if file_size > size:
-            sys.exit(f"Check failed: {source_path} is too large to copy (>500KB). Current size: {file_size}.")
-    return mappings
+def check_central_path(central_paths):
+    for central_path in central_paths:
+        if not central_path.endswith("/") and os.path.isdir(central_path):
+            sys.exit(f"Error: {central_path} in central should end with / as it is a folder mapping.")
+        # This condition becomes true if central path mentioned is root directory of central repo
+        if not os.path.dirname(central_path):
+            sys.exit(f"Error: You can't create a path directly, {central_path}, to the root of the central repo.")
+    return True
 
-with open("docs-manifest.txt", 'r') as f:
-    lines = f.readlines()
+def check_filesize(source_path):
+    file_size = (os.stat(str(source_path)).st_size)/1000
+    if file_size > FILESIZE_LIMIT:
+        sys.exit(f"Error: {source_path} is too large to copy (>500KB). Current size: {file_size}.")
+    else:
+        return True
 
-    # Get all lines with '!' pattern
-    lines_with_exclamation = [line.strip() for line in lines if "!" in line]
+def check_spaces(path):
+    if " " in path:
+        sys.exit(f"Error: {path} contains spaces. Wikijs doesn't allow us to sync files with spaces. Rename your file.")
+    else:
+        return True
 
-    # Get all lines with '-->' pattern 
-    lines_with_arrows = [line.strip() for line in lines if "-->" in line]
+def find_images(source_path):
+    with open(source_path, "r") as f:
+        content = f.read()
+    image_regex = r"!\[.*\]\((.+)\)"
+    images = re.findall(image_regex, content)
+    updated_images = [image.strip() for image in images if not image.startswith("http")]
+    return updated_images
+
+def perform_basic_checks(mappings):
+    # Get updated mappings that pass the following checks
+    updated_mappings = {}
+    for source_path, central_paths in mappings.items():
         
-    # Get source and central paths as key:value pair
-    # central is key and source is value as central mappings are unique
-    mappings = {}
-    for line in lines_with_arrows: 
-        mappings[line.split('-->')[1].strip()] = line.split('-->')[0].strip()
-    
-    # Get source paths to be removed before coying
-    source_paths_to_remove = [line.split('!')[1].strip() for line in lines_with_exclamation]
+        # Check if source path is valid
+        if is_valid_path(source_path):
+            # Check if source path is a folder path 
+            if not os.path.isdir(source_path):
+                md_file_paths = []
+            else:
+                # From a folder path get all md file paths
+                md_file_paths = get_md_file_paths(source_path)
 
-    # Check if folders are mentioned in source paths to remove; Convert to file mapping 
-    folder_mappings_to_delete = check_for_folders(source_paths_to_remove)
-    
-    # Update source paths to delete list: Add file paths and remove folder path
-    for key in folder_mappings_to_delete.keys():
-        files = [f"{key}{file}" for file in folder_mappings_to_delete[key]]
-        source_paths_to_remove.extend(files)
-        source_paths_to_remove.remove(key)
-    
-    # Update mappings based on source_paths_to_remove
-    mappings = remove_paths(mappings, source_paths_to_remove)
-    
-    # Check if mappings have spaces
-    mappings = check_for_spaces(mappings)
+            # Central path checks
+            check_central_path(central_paths)
+                    
+            # Update the mapping json if folder paths are present 
+            if md_file_paths:
+                for md_file in md_file_paths:
+                    new_source_path = md_file
+                    new_central_paths = [] 
+                    file_path = md_file.split(source_path)[1]
+                    for central_path in central_paths:
+                        new_central_paths.append(f"{central_path}{file_path}")  
+                    updated_mappings[new_source_path] = new_central_paths
+            else:
+                updated_mappings[source_path] = central_paths
+    return updated_mappings
 
-    # Check if filesize of a mapping is >500KB
-    mappings = check_filesize(mappings, FILESIZE_LIMIT)
+def perform_exclude_checks(updated_mappings):
+    # Update mappings after checking excludes
+    for exclude_path in exclude_files:
+        if is_valid_path(exclude_path):
+            if not os.path.isdir(exclude_path):
+                if exclude_path in updated_mappings.keys():
+                    del updated_mappings[exclude_path]
+            else:
+                md_file_paths = get_md_file_paths(exclude_path)
+                for md_file in md_file_paths:
+                    if md_file in updated_mappings.keys():
+                        del updated_mappings[md_file]
+    return updated_mappings
 
-    # Write to bash output variable if all checks pass
-    mapping_array = []
-    for mapping in mappings.keys(): 
-        mapping_array.append(f"{mappings[mapping]}-->{mapping}") 
+def perform_additional_checks(updated_mappings):
+    # Additional checks: Filesize and spaces in updated mappings
+    for source_path, central_paths in updated_mappings.items():
+        # Source checks
+        # check_filesize(source_path)
+        check_spaces(source_path)
+        # Central checks
+        for central_path in central_paths:
+            check_spaces(central_path)
+    return updated_mappings
 
-    # Print to stdout
-    for mapping in mapping_array:
-        print(mapping)
-    
+def copy_updated_mappings(updated_mappings):
+    for source_path, central_paths in updated_mappings.items():
+        for central_path in central_paths:
+            central_path_folder = os.path.dirname(central_path)
+            os.makedirs(f"/root/central/{central_path_folder}", exist_ok=True)
+            shutil.copy(source_path, f"/root/central/{central_path}")
+    return True
+
+def normalize_path(path):
+  
+    # Split the path into components
+    components = path.split('/')
+
+    # Initialize an empty list to hold the normalized components
+    normalized_components = []
+
+    # Loop through the components and build the normalized path
+    for component in components:
+        # Ignore empty components and '.'
+        if component == '' or component == '.':
+            continue
+        # Handle '..' by removing the last normalized component
+        elif component == '..':
+            if len(normalized_components) > 0:
+                normalized_components.pop()
+        # Add all other components to the normalized path
+        else:
+            normalized_components.append(component)
+
+    # Join the normalized components and return the result
+    normalized_path = '/'.join(normalized_components)
+    return normalized_path
+
+def create_image_mappings(updated_mappings):
+    all_image_mappings = {} 
+    for source_path, central_paths in updated_mappings.items():
+        source_folder = os.path.dirname(source_path)
+        # Find all images for a source path
+        images = find_images(source_path)
+        if images:
+            for central_path in central_paths:
+                image_mappings_array = []
+                central_folder = os.path.dirname(central_path)
+                for source_image_path in images:
+                    image_mappings = {}
+                    # If path is absolute, use relapth() to find the relative position of image from markdown file
+                    if source_image_path.startswith("/"):
+                        # rel_source and abs_source are assumed same in this case
+                        abs_source_image_path = source_image_path[1:]
+                        rel_source_image_path = abs_source_image_path
+                        rel_path = os.path.relpath(rel_source_image_path, source_folder)
+                        abs_central_image_path = os.path.join(central_folder, rel_path)
+                        # normalize_path function helps in removing /../ or /./ present in entire path string
+                        abs_central_image_path = normalize_path(abs_central_image_path)
+                    else:
+                        rel_source_image_path = source_image_path
+                        abs_source_image_path = os.path.join(source_folder, rel_source_image_path)
+                        abs_source_image_path = normalize_path(abs_source_image_path)
+                        abs_central_image_path = os.path.join(central_folder, rel_source_image_path)
+                        abs_central_image_path = normalize_path(abs_central_image_path)
+                    
+                    check_filesize(abs_source_image_path)
+
+                    image_mappings["rel_source"] = rel_source_image_path
+                    image_mappings["abs_source"] = abs_source_image_path
+                    image_mappings["abs_central"] = abs_central_image_path
+                    image_mappings_array.append(image_mappings)
+
+                all_image_mappings[central_path] = image_mappings_array
+    return all_image_mappings    
+
+def copy_image_mappings(all_image_mappings):
+    central_paths = all_image_mappings.keys()
+    for central_path in central_paths:
+        image_mappings = all_image_mappings[central_path]
+        for image_mapping in image_mappings:
+            source_image_path = image_mapping["abs_source"]
+            central_image_path = image_mapping["abs_central"]
+            central_folder = os.path.dirname(central_image_path)
+            os.makedirs(f"/root/central/{central_folder}", exist_ok=True)  
+            shutil.copy(source_image_path, f"/root/central/{central_image_path}")     
+    return True
+
+def modify_image_paths(updated_mappings, all_image_mappings):
+    for source_path, central_paths in updated_mappings.items():
+        for central_path in central_paths:
+            image_mappings = all_image_mappings.get(central_path, [])
+            if image_mappings:
+                with open(f"/root/central/{central_path}", "r") as f:
+                    content = f.read()
+                for image_mapping in image_mappings:
+                    original = image_mapping["rel_source"]
+                    new = image_mapping["abs_central"]
+                      
+                    if original == image_mapping["abs_source"]:
+                        content = content.replace(original, new)
+                    else:
+                        # if rel_path and abs_path are not same add a '/' in central_image_path. In other case, it's already there in file.
+                        content = content.replace(original, f"/{new}")
+                with open(f"/root/central/{central_path}", "w") as f:
+                    f.write(content)
+    return True
+
+# Load the contents from manifest file
+mappings, exclude_files = load_manifest(MANIFEST_FILE)
+
+# Perform basic checks and get updated mappings
+updated_mappings = perform_basic_checks(mappings)
+
+# Perform checks based on exclude section of .toml
+updated_mappings = perform_exclude_checks(updated_mappings)
+
+# Perform additional checks and get updated mappings
+perform_additional_checks(updated_mappings)
+
+# Copy updated mappings to respective path in /root/central before changing image paths
+copy_updated_mappings(updated_mappings)
+
+# Create image mappings 
+all_image_mappings = create_image_mappings(updated_mappings)
+
+# Copy all image mappings to respective path in /root/central
+copy_image_mappings(all_image_mappings)
+
+# Modify image paths for .md files in /root/central
+modify_image_paths(updated_mappings, all_image_mappings)

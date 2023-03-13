@@ -1,48 +1,60 @@
-# Setting up pipeline in central repository
+# Knowledge Portal Central Pipeline
 
->You can just simply use the below code and paste it in your `.gitlab-ci.yml` file of your repo.
+## Usage
+
+### Adding this pipeline to your repo
+
+You will have to modify the existing `gitlab-ci.yml` file to include:
 
 ```yaml
 stages:
-    - push
+  - push
+
 include:
-    - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/.gitlab-ci.yml'
+  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/.gitlab-ci.yml'
+
+variables: 
+  GIT_STRATEGY: clone
+
 ```
 
-## Setting up Access Token in central repository
+### Central Pipeline Checks
 
-1. Go to `Settings >> Access Tokens`.
-2. Set `Token name = PUSH_TOKEN`. This is important and you can't choose any other name without modifying the source pipeline as well.
-3. Select the role `Maintainer` and `write_repository` as the scope of token.
-4. `Create project access token` will create a unique token for you that can then be shared with `maintainers` setting up individual `source` pipelines.
+Before the job in pipeline pushes files back to `source`, it checks multiple things based on your mapping file. Knowing about these checks will help you use the pipeline easily and make any necessary changes before any change on wikijs become available at `source` repository.
 
+- The jobs will only run when a commit happens on `main` branch with a message starting with `docs:`, This ensures that the jobs will only run when a commit has been made from wikijs portal.
+- Ensure that all image URL paths in Markdown files are absolute and begin with `/`.
+- Ensure all image URL paths in a Markdown file are in downstream of that Markdown file. 
+- Ensure that any file being copied is less than 500KB in size.
 
-## Setting up BOT_ACCESS_TOKEN variable 
+## Use Cases: Changes on Knowledge Portal
 
-1. Go to `Settings >> CI/CD >> Variables`
-2. Click on `Add variable`. 
-3. Give the name `BOT_ACCESS_TOKEN` in `Key` field and `Value` field will be provided by your maintainers.
-4. Click on `Add variable` button to confirm changes.
+If you adhere to checks performed by **Central Pipeline**, you can use the pipeline for following use cases:
 
-## Working of pipeline
+### Uploading/Deleting an image on Knowldge Portal
 
-### 1. If same file from `source` exists in multiple locations(duplicates) at `central`, and both files are modified simultaneously
-- Let's say `duplicate1` is declared before `duplicate2` in your `docs-manifest` file
-- Then `duplicate2`, which is mentioned later, will take precedence and will be pushed as truth back to `source` repo.
-- After MR is accepted at `source`, the pipeline will again run and `duplicate1` will also get replaced by contents of `duplicate2`.
+- The pipeline will run as a new commit will happen at `central` with a commit message starting with `docs:`
+- Since, no Markdown files have been changed since last commit, the pipeline will succed with a message "**This is not a markdown file change scenario.**"
 
-### 2. Files from multiple repos are modified simultaneously
-- Since, RHS of `docs-manifest` is unique, we can identify the `source` repo the file belongs to from the suffix(repo_name) present in `docs-manifest_suffix.txt`.
-- We then clone those repos in unique folders, commit our changes, and push to source repo.
+### Creating a new Markdown file on Knowldge Portal
 
-### 3. Recognise if a commit on `central` happened through `Knowledge Portal`
-- All commits from `Knowledge Portal` starts with commit message `docs:....`
-- We check this substring `docs:` in the commit message to ensure the same.
+- If the Markdown file has been created inside a folder which exists in central mapping of `docs-manifest.toml` file, the file will be made available at the `source` as well in the MR that will get created once Knowledge Portal syncs with `central`.
+- In case of new images in the markdown file,the new image will be made available at `source` with a modified absolute path in `source` repository.
 
-    Notes: `Knowledge Portal` creates new commits for every changed file, if multiple files on `Knowledge Portal` are modified and saved at almost exact time, the pipeline on `central` repo only runs for latest commit(best guess: this only happens when you do a `Force Sync` opeartion under `Storage` on wikijs). 
-    -  To resolve, this issue, we check last 5 commits starting from the latest commit until `docs:` pattern break.  
-    - A drawback of this implementation is that, it will add commits to same MR incase pipeline actually ran for previous commits as well.    
+### Deleting a Markdown file on Knowldge Portal
 
+- If the file that has been deleted is part of any `source` repository
+    - the files will get deleted on wikijs and in turn on `central` repository.
+    - the pipeline however is not configured to deal with such situations,
+        - so, the change won't sync back to source, and the pipeline will succed with a message "**This is not a markdown file change scenario.**".
+        - if the file still exists at source, it will become available at   `central` and in turn on `Knowldge Portal` again, when the pipeline on `source` runs.  
 
+## Edge Cases
 
+1. Handling duplicates of the same file in different locations at `central`, with simultaneous modifications
+    - If the same file exists in multiple locations (duplicates) at `central`, and both files are modified at the same time, the file mentioned later in the `docs-manifest` file (i.e., `duplicate2`) will take precedence and be pushed back to the `source` repository as the truth.
+    - After the merge request (MR) is accepted at `source`, the pipeline will run again, and the contents of `duplicate2` will replace the contents of `duplicate1`.
 
+2. Modifying files from multiple repositories simultaneously
+    - Since the RHS (right-hand side) of `docs-manifest.toml` is unique, we can identify the source repository to which the file belongs based on the suffix (<repo_name>) present in `docs-manifest_<repo_name>.toml`.
+    - We then clone those repos in unique folders, commit our changes, and push them to `source` repository.
