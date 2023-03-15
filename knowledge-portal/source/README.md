@@ -1,4 +1,4 @@
-# Knowlege portal Source Pipeline
+# Knowlege portal Source Git
 
 ## Usage
 
@@ -17,13 +17,13 @@ variables:
   GIT_STRATEGY: clone
 
 ```
-### Using the toml file to connect to Knowledge Portal
+### Connect your Source Git repository to the Knowledge Portal
 
-Here is an example of a `docs-manifest.toml` file that you can use to create your own and connect your pipeline to knowledge portal:
+Here is an example of a `docs-manifest.toml` file that you can use to create your own and connect your repository to knowledge portal:
 
 
 ```toml
-# "includes" section maps source paths to paths at Knowledge Portal
+# "includes" section maps paths inside your source Git repository to paths that the documents should take within the Knowledge Portal
 # If a source path is a directory, all files with the .md extension within that directory (and its subdirectories) will be copied
 # If a source path is a file, only that file will be copied
 # Any folder mapping should end with '/'
@@ -53,7 +53,7 @@ Before the job in pipeline pushes files to Knowledge Portal, it checks multiple 
 - If a folder is specified in the `includes` or `excludes` sections (both source and destination), make sure to end the path with a forward slash `/`.
 - Ensure that there are no spaces in the file paths (both source and destination) and image paths that are being copied to the Knowledge Portal.
 - Check that only supported file types are being copied. Supported file types include `.md`, `.jpg`, `.png`, `.gif`, `.svg`, and `.ico`.
-- Pipeline figures out the type of image path specified in a markdown file, and converts any relative image path to absolute path before copying over to Knowledge Portal
+- Pipeline figures out the type of image path specified in a markdown file, and converts any relative image path to absolute path before copying over to Knowledge Portal. Any path starting with `http` will not be changed in the markdown file.
 
 ### Configure CI/CD variables
 
