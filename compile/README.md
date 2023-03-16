@@ -1,127 +1,82 @@
-# Python Compilation
+# Python Compile Pipeline
 
-Compiles python files for distribution in different python versions and CPU achitectures
+Using Cython, Python files can be compiled for distribution across various versions of Python and CPU architectures. However, it's important to note that the compilation is not static, and therefore, any dependencies from PyPI will still need to be installed separately.
 
-NOTE: The files are not statically compiled, and hence any pypi dependencies will still have to be installed
+To utilize the CI/CD template, it's necessary to add it to your project's `.gitlab-ci.yml` file and set up certain configurations such as pipeline settings and CI/CD variables.
 
-You will have to modify the existing `gitlab-ci.yml` file to include:
+## Usage (Configuring Pipeline)
+
+### Adding CI/CD Variable
+    
+To set up CI/CD variables, navigate to Settings > CI/CD > Variables in your GitLab project and follow these steps:
+1. Set the `BUILD_OUTPUT_REPO` variable to the path of the destination repository where you want to push the built artifacts. 
+    - path is a substring of repo url and should be of the form `<org-name>/../../<YOUR_SOURCE_REPO>.git`
+2. Keep the variable `protected` to ensure that the job can access the variable only from a protected branch.
+
+
+### Sample configuration 
+
+```yml
+stages:
+  - build
+  - push
+
+include:
+  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/.gitlab-ci.yml'
+
+variables:
+    COPY_FILES: |
+        ./Dockerfile
+        ./docker-compose.yml
+        ./USAGE.md
+        ./TEST.md
+        ./README.md
+    GIT_STRATEGY: clone #REQUIRED
+    GIT_DEPTH: 1  
+    REMOVE_BRANCHES: "false" 
+    EXCLUDE_FILES: |
+        ./folder1/test.py
+
+# Add this if you only want to build for specific versions
+# IN following case, we are building (py3.6,py3.7) for amd64(x86_64) and (py3.6, py3.7) for arm64(aarch64) architectures respectively
+build_binaries:
+    parallel:
+        matrix:
+            - TAG: amd64
+              PLATFORM: amd64
+              VERSION: [py3.6,py3.7]
+            - TAG: armv8
+              PLATFORM: arm64
+              VERSION: [py3.6,py3.7] 
+```
+
+### Choosing version and architecture 
+By default, the pipeline tries to build all combinations of Python versions and CPU architectures. However, you can modify this behavior to build specific versions by adding the following snippet to the `.gitlab-ci.yml` file of the source repository and modify the `matrix`.
 
 ```yaml
-    stages:
-        - build
-        - push
-    include:
-        - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/.gitlab-ci.yml'
-    variables:
-        GIT_STRATEGY: clone
-
-```
-You will also have to configure some variables. Please check out the next section.
-
-## Pipeline configuration for source repo
-
-1. **Choose version and architecture (optional)**. By default, the pipeline tries to build all python versions and cpu architectures combination. It can be modified to build specific versions by modifying the snippet below and adding it to `.gitlab-ci.yml` file of source repo. 
-    - `TAG` refers to gitlab-runner being used to run the job
-    - `PLATFORM` refers to architecture
-    - `VERSION` refers to python versions
-    ```yaml
-    build-binaries:
-        parallel:
+build_binaries:
+    parallel:
         matrix:
-          - TAG: amd64
-            PLATFORM: amd64
-            VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
-          - TAG: armv8
-            PLATFORM: arm64
-            VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
-          - TAG: armv8
-            PLATFORM: armv7
-            VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
-    ```
-2. **Variables**
-    - `REMOVE_BRANCHES: "true"` removes all destination branches except main before pushing
-    - (Required) `GIT_STRATEGY: clone` !Important as it makes sure that source repo doesn't contain cached files
-    - `GIT_DEPTH: 1` can be set accordingly. By default it is set to 20 by gitlab.
-    - `GIT_SUBMODULE_DEPTH: 1` can be set accordingly
-    - `FILES_TO_COPY`: Use this as gitlab multiline variable and provide full path of files/folders that needs to be copied to destination. No `.py` or `.so` files will be copied using this variable. It will skip such files, even if you give entire folder to copy.
-    - (Optional) `DELETE_BEFORE_COMPILING`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be deleted before compilation.
+            - TAG: amd64
+              PLATFORM: amd64
+              VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
+            - TAG: armv8
+              PLATFORM: arm64
+              VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
+            - TAG: armv8
+              PLATFORM: armv7
+              VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
+```
+In the above snippet, `TAG` refers to the GitLab runner being used to run the job, `PLATFORM` refers to the CPU architecture, and `VERSION` refers to the Python version.
 
-    Below is a sample configuration for a repository where you might have a few `.md` and a few `.yml` files to copy over in addition to all python files that would anyways be compiled
+### Pipeline Variables
 
-    ```yaml
-    variables:
-        # pycompile variables
-        FILES_TO_COPY: |
-            ./Dockerfile
-            ./docker-compose.yml
-            ./USAGE.md
-            ./TEST.md
-            ./README.md
-        GIT_STRATEGY: clone
-        GIT_DEPTH: 1
-        REMOVE_BRANCHES: "true"
-    ```
+To configure the pipeline, you can use the following variables:
 
-## Troubleshooting
+- `REMOVE_BRANCHES: "true"` removes all destination branches except `main` before pushing.
+- `GIT_STRATEGY: clone` is **required** to ensure that the pipeline in source repository doesn't contain cached files.
+- `GIT_DEPTH: 1` can be set accordingly. By default it is set to 20 by gitlab.
+- `GIT_SUBMODULE_DEPTH: 1` can be set accordingly
+- `COPY_FILES`: Use this as gitlab multiline variable and provide full path of files/folders that needs to be copied to destination. No `.py` or `.so` files will be copied using this variable. It will skip such files, even if you give entire folder to copy.
+- `EXCLUDE_FILES`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be excluded before compilation. 
 
-1. If you see this error in the CI pipeline FOR the `build-armv7` job:
-    ```bash
-    Skipping Git submodules setup
-    Executing "step_script" stage of the job script 00:00
-    Using docker image sha256:1df7cf6223b8bc56f843f3c80d268253c5656ad4ba5913dcbb6123572b07182f for registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler:1.0-armv7 with digest registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pycompiler@sha256:aa88d8444af2774fcab8e4952855d499729ed36e2cc76b447cf1bcb727259a9b ...
-    exec /usr/bin/sh: exec format error
-    Cleaning up project directory and file based variables 00:01
-    ERROR: Job failed: exit code 1
-    ```
-    You will have to re-run that particular job after some time. The root cause of this issue is not yet diagnosed.
-    <br>
-
-2. If you see this error in your CI pipeline logs for the final stage:
-    ```bash
-    $ echo 'Running on the Detect Gitlab CI/CD runner with timestamp: xxx'
-    Running on the Detect Gitlab CI/CD runner with timestamp: xxx
-    $ mkdir ~/.ssh/
-    $ which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )
-    /usr/bin/ssh-agent
-    $ ssh-keyscan -t rsa $CI_SERVER_HOST >> ~/.ssh/known_hosts
-    # gitlab.com:22 SSH-2.0-GitLab-SSHD
-    $ echo "${SSH_PUSH_KEY}" > ~/.ssh/id_rsa
-    $ chmod 600 ~/.ssh/id_rsa
-    $ git config --global user.email "PlatformTeam@detecttechnologies.com"
-    $ git config --global user.name "DetectTechnologies CI"
-    $ git clone "${BUILD_OUTPUT_REPO}" /root/dest
-    Cloning into '/root/dest'...
-    Warning: Permanently added the RSA host key for IP address 'xxx' to the list of known hosts.
-    remote: 
-    remote: ========================================================================
-    remote: 
-    remote: ERROR: The project you were looking for could not be found or you don't have permission to view it.
-    remote: 
-    remote: ========================================================================
-    remote: 
-    fatal: Could not read from remote repository.
-    Please make sure you have the correct access rights
-    and the repository exists.
-    Cleaning up project directory and file based variables 00:00
-    ERROR: Job failed: exit code 1
-    ```
-    It is likely because you need to enable the `SSH_PUSH_KEY` in your Destination Repository's `Deploy Keys` section
-    <br>
-    
-3. If you see this error in your CI pipeline logs for the final stage:
-    ```bash
-    $ git push origin HEAD:main -f
-    remote: 
-    remote: ========================================================================
-    remote: 
-    remote: ERROR: This deploy key does not have write access to this project.
-    remote: 
-    remote: ========================================================================
-    remote: 
-    fatal: Could not read from remote repository.
-    Please make sure you have the correct access rights
-    and the repository exists.
-    Cleaning up project directory and file based variables 00:00
-    ERROR: Job failed: exit code 1
-    ```
-    It is likely because you need to enable write access for your Deploy Key in the Destination repositorey
