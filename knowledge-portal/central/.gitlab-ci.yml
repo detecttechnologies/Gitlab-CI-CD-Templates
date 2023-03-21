@@ -2,13 +2,11 @@ merge_request_to_source:
   stage: push
   image: python:3.9
   before_script:
+    - apt-get update
+    - apt-get install jq -y
+    - apt-get install -y -qq git-lfs
     - pip3 install toml
   script:
     - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/central/initiate-push-to-source.sh)"
-
-workflow:
-  rules:
-    - if: $CI_COMMIT_MESSAGE =~ /^docs:.*/ && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: always
-    - when: never
-  
+  only:
+    - main

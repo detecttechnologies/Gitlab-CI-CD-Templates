@@ -7,7 +7,7 @@ import shutil
 
 MANIFEST_FILE = "docs-manifest.toml"
 FILESIZE_LIMIT = 500
-SUPPORTED_FILE_TYPES = (".md", ".jpg", ".png", ".gif", ".svg", ".ico")
+SUPPORTED_FILE_TYPES = (".md", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".ico")
 
 def load_manifest(manifest_file):
     manifest_json = toml.load(manifest_file)
