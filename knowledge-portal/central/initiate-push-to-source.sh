@@ -8,7 +8,7 @@ git config --global user.name "Detect Gitlab Bot"
 
 # changed files are all files since pipeline successfully ran last time on central
 GITLAB_API="https://gitlab.com/api/v4"
-PIPELINES=$(curl --header "PRIVATE-TOKEN: $PIPELINE_ID_TOKEN" "$GITLAB_API/projects/$CI_PROJECT_ID/pipelines?scope=finished&status=success" | jq '.[0].sha')
+PIPELINES=$(curl --header "PRIVATE-TOKEN: $API_TOKEN" "$GITLAB_API/projects/$CI_PROJECT_ID/pipelines?scope=finished&status=success" | jq '.[0].sha')
 LAST_PIPELINE_COMMIT=$(echo $PIPELINES | tr -d '"')
 changed_files=$(git diff --name-only $LAST_PIPELINE_COMMIT $CI_COMMIT_SHA)
 
