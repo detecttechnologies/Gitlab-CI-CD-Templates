@@ -4,7 +4,7 @@
 
 ### Adding this pipeline to your repo
 
-You will have to modify the existing `gitlab-ci.yml` file to include:
+Modify the existing `gitlab-ci.yml` file to include:
 
 ```yaml
 stages:
@@ -17,6 +17,10 @@ variables:
   GIT_STRATEGY: clone
 
 ```
+### Create an Access Token and CI/CD variable for getting the last successful pipeline
+  1. Go to `Settings >> Access Tokens`. Give `token_name` = `api-token`. Select `api` scope and create the token.
+  2. Go to `Settings >> CI/CD >> Variables`. Click on `Add variable`. Give `name` = `API_TOKEN` and value = `<token you copied>`. `Protect` and `Mask` the variable and add it.
+
 > Image mappings for a markdown file get generated dynamically in the pipeline, and get copied over to Knowledge Portal. However, there are some conditions which are explained in section [central pipeline checks](#central-pipeline-checks). 
 
 ## Additional Information 

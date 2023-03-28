@@ -25,6 +25,12 @@ echo "Done! Copied manifest file to /root/central."
 
 # Push back to central-git with the updated changes
 cd /root/central
-git add -A && git commit -m "Commit in source pipeline for ${unique_path}" --allow-empty;
-git push origin HEAD:main -f;
-echo "Done! Pushed files to central git."
+git add -A 
+# Check if there are changes to commit
+if [ -n "$(git status --porcelain)" ]; then
+    git commit -m "doc update from knowledge portal"
+    git push origin HEAD:main -f;
+    echo "Done! Pushed files to central git."
+else
+    echo "Done! No changes to commit."
+fi

@@ -5,8 +5,12 @@ dummy-job:
 copy-to-central-git:
   stage: push
   image: python:3.9
-  script:
+  before_script:
+    - apt-get update
+    - apt-get install jq -y
+    - apt-get install -y -qq git-lfs
     - pip3 install toml
+  script:
     - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/knowledge-portal/source/initiate-push-to-central.sh)"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
