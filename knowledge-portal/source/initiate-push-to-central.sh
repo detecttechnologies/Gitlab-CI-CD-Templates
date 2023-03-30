@@ -28,7 +28,7 @@ cd /root/central
 git add -A 
 # Check if there are changes to commit
 if [ -n "$(git status --porcelain)" ]; then
-    git commit -m "Commit in source pipeline for ${unique_path}""
+    git commit -m "Commit in source pipeline for ${unique_path}"
     git push origin HEAD:main -f;
     echo "Done! Pushed files to central git."
 else
