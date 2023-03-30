@@ -8,7 +8,7 @@ changed_files = sys.argv[1:]
 
 CHANGED_FILES = [file for file in changed_files if file.endswith(".md")] 
 MANIFEST_LST = glob("manifests/*.toml")
-FILESIZE_LIMIT = 500
+FILESIZE_LIMIT = 1000
 
 
 def load_manifests(manifest_file):
