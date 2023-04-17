@@ -1,0 +1,11 @@
+[[repos]]
+name = "<repo-1>"
+project_id = "<project-id>"
+api_token = "<api-token>"
+
+[[repos]]
+name = "<repo-2>"
+project_id = "<project-id>"
+api_token = "<api-token>"
+
+# ... and so on

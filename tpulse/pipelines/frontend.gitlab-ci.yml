@@ -1,0 +1,137 @@
+# Include Gitlab template Jobs
+include:
+  - template: Jobs/Code-Quality.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+# Define pipeline stages
+stages:
+  - build
+  - test
+  - deploy
+
+# Build Stage
+# Get node_modules
+install_dependencies:
+  image: node:16.14.2
+  stage: build
+  tags:
+    - tpulse
+  script:
+    - npm install
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_BRANCH == "test"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+
+build_dist:
+  stage: build
+  needs: ["install_dependencies"]
+  image: node:16.14.2
+  tags:
+    - tpulse
+  before_script:
+    - apt-get update && apt-get install -y git bash
+  script:
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies.com/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/build_dist.sh)"
+  artifacts:
+    paths:
+      - temp-worktree/dist
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+    policy: pull
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_BRANCH == "test"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+
+
+# NG lint job in test stage
+ng_lint:
+  stage: test
+  image: node:16.14.2
+  tags:
+    - tpulse
+  script:
+    - npm i -g @angular/cli@13.3.10
+    - ng add @angular-eslint/schematics --skip-confirmation
+    - cat package.json
+    - cat .eslintrc.json
+    - ng lint || true
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+    policy: pull
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+code_quality:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+nodejs-scan-sast:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+secret_detection:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+semgrep-sast:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+
+# Deploy Jobs
+# Deploys to EC2 VM
+
+deploy_dist:
+  stage: deploy
+  image: python:3.10
+  tags:
+    - tpulse
+  environment:
+    name: $ENVIRONMENT
+  before_script:
+    - apt update && apt-get -y install git rsync jq &>/dev/null
+    - pip install --no-cache-dir awscli &>/dev/null
+    - pip install toml boto3 jq &>/dev/null
+  script:
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies.com/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/deploy_dist.sh)"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_COMMIT_BRANCH == "develop"
+      variables:
+        DEPLOY_ENVIRONMENT: dev
+        ENVIRONMENT: dev
+        DEPLOY_CONFIG: $dev_DEPLOYMENT_CONFIG
+    - if: $CI_COMMIT_BRANCH == "test"
+      variables:
+        DEPLOY_ENVIRONMENT: qa
+        ENVIRONMENT: qa
+        DEPLOY_CONFIG: $qa_DEPLOYMENT_CONFIG
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        DEPLOY_ENVIRONMENT: staging
+        ENVIRONMENT: staging
+        DEPLOY_CONFIG: $staging_DEPLOYMENT_CONFIG
+      when: manual
+    - when: never
