@@ -26,7 +26,7 @@ build_docker:
   before_script:
     - apk add --no-cache curl bash git 
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies.com/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/build_docker.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/build_docker.sh)"
   rules:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
     - if: $CI_COMMIT_BRANCH == "develop"
@@ -100,7 +100,7 @@ deploy_docker:
     - apk add --no-cache python3 py3-pip &>/dev/null
     - pip3 install --no-cache-dir awscli toml boto3 jq &>/dev/null
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies.com/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/deploy_docker.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/deploy_docker.sh)"
   rules:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
     - if: $CI_COMMIT_BRANCH == "develop"

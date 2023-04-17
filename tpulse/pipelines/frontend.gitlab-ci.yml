@@ -41,7 +41,7 @@ build_dist:
   before_script:
     - apt-get update && apt-get install -y git bash
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies.com/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/build_dist.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/build_dist.sh)"
   artifacts:
     paths:
       - temp-worktree/dist
@@ -114,7 +114,7 @@ deploy_dist:
     - pip install --no-cache-dir awscli &>/dev/null
     - pip install toml boto3 jq &>/dev/null
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies.com/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/deploy_dist.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/deploy_dist.sh)"
   rules:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
     - if: $CI_COMMIT_BRANCH == "develop"
