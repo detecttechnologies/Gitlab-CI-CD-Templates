@@ -5,6 +5,7 @@ import os
 
 DEPLOY_ENVIRONMENT = sys.argv[1]
 CLIENTS = sys.argv[2]
+PATH_PREFIX = os.environ['PATH_PREFIX']
 print(CLIENTS)
 
 # if CLIENTS is "all", then we get ALL_CLIENTS from CI/CD settings variables   
@@ -64,7 +65,7 @@ for client in clients:
         
         dynamic_config["trigger_repos"]["parallel"]["matrix"].append({
             "PROJECTS": repo_name,
-            "PREFIX": 'DetectTechnologies/Software/WebApps/T-PULSE/web/tpulse-msa/tpulse-msa-{}'.format(repo["type"]),
+            "PREFIX": f'{PATH_PREFIX}-{repo["type"]}',
         })
 
     # Save the dynamic configuration to a file with a unique name for each client
