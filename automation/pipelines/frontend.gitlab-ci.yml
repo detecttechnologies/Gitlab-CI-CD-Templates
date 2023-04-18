@@ -16,7 +16,7 @@ install_dependencies:
   image: node:16.14.2
   stage: build
   tags:
-    - tpulse
+    - automation
   script:
     - npm install
   cache:
@@ -37,11 +37,11 @@ build_dist:
   needs: ["install_dependencies"]
   image: node:16.14.2
   tags:
-    - tpulse
+    - automation
   before_script:
     - apt-get update && apt-get install -y git bash
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/build_dist.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/scripts/build_dist.sh)"
   artifacts:
     paths:
       - temp-worktree/dist
@@ -65,7 +65,7 @@ ng_lint:
   stage: test
   image: node:16.14.2
   tags:
-    - tpulse
+    - automation
   script:
     - npm i -g @angular/cli@13.3.10
     - ng add @angular-eslint/schematics --skip-confirmation
@@ -106,7 +106,7 @@ deploy_dist:
   stage: deploy
   image: python:3.10
   tags:
-    - tpulse
+    - automation
   environment:
     name: $ENVIRONMENT
   before_script:
@@ -114,7 +114,7 @@ deploy_dist:
     - pip install --no-cache-dir awscli &>/dev/null
     - pip install toml boto3 jq &>/dev/null
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/deploy_dist.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/scripts/deploy_dist.sh)"
   rules:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
     - if: $CI_COMMIT_BRANCH == "develop"

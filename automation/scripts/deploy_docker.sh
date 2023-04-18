@@ -18,7 +18,7 @@ else
         exit 1
     fi
 
-    python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/push_ecr.py)" "${DEPLOY_CONFIG}" $TAG
+    python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/scripts/push_ecr.py)" "${DEPLOY_CONFIG}" $TAG
 
-    python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/deploy_ecs.py)" "${DEPLOY_CONFIG}" $TAG
+    python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/scripts/deploy_ecs.py)" "${DEPLOY_CONFIG}" $TAG
 fi

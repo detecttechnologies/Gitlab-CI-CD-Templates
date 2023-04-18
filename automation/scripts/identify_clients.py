@@ -24,7 +24,7 @@ dynamic_config = {
         'stage': 'generate',
         'image': 'python:3.10',
         'before_script': 'pip install pyyaml toml',
-        'script': f'python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/generate_pipeline.py)" {DEPLOY_ENVIRONMENT} {CLIENTS}',
+        'script': f'python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/scripts/generate_pipeline.py)" {DEPLOY_ENVIRONMENT} {CLIENTS}',
         'artifacts': {
             'paths': [
                 'trigger-msa-*.yml'

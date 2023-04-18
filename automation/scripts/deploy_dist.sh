@@ -18,5 +18,5 @@ if [ -z "$DEPLOY_ENVIRONMENT" ]; then
     echo "No deploy environment found."
     exit 1
 else
-    python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/tpulse/scripts/deploy_ec2.py)" "$DEPLOY_CONFIG"
+    python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/scripts/deploy_ec2.py)" "$DEPLOY_CONFIG"
 fi
