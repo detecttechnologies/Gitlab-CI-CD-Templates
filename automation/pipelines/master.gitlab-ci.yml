@@ -1,0 +1,44 @@
+# master pipeline stages
+stages:
+  - prepare
+
+# overall pipeline rules
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+      when: never  # Prevent pipeline run autromatically for push event
+    - when: always # Run pipeline for all other cases
+
+# pipeline variables: to choose an environment during runtime
+variables:
+  DEPLOY_ENVIRONMENT:
+    value: "dev"
+    options:
+      - "dev"
+      - "qa"
+      - "staging"
+      - "clients"
+    description: "The deployment target. Set to 'dev' by default."
+  CLIENTS: 
+    value: "none"
+    description: "Enter client's name separated by comma. Set to 'none' by default. You can also set it to 'all' to deploy to all clients."
+
+identify_clients:
+  stage: prepare
+  image: python:3.10
+  before_script:
+  - pip install toml pyyaml requests &>/dev/null
+  script:
+    - python3 -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/scripts/identify_clients.py)" $DEPLOY_ENVIRONMENT $CLIENTS
+  artifacts:
+    paths:
+      - trigger-deployment.yml
+
+prepare_clients:
+  stage: prepare
+  needs: ["identify_clients"]
+  trigger:
+    include:
+      - artifact: trigger-deployment.yml
+        job: identify_clients
+    strategy: depend
