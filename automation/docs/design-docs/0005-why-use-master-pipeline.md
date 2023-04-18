@@ -1,13 +1,13 @@
 ---
 status: implemented
 title: ADR-0005: Master Pipeline Configuration and Triggers
-description: Decision to use a master pipeline configuration with different triggers to manage the CI/CD process for various deployment environments in T-pulse projects
+description: Decision to use a master pipeline configuration with different triggers to manage the CI/CD process for various deployment environments in project
 tags: adr
 ---
 
 # Context and Problem Statement
 
-The T-pulse project has multiple deployment environments, such as development, QA, staging, and clients. In order to maintain a streamlined and efficient CI/CD process across these environments, we need to decide on a pipeline configuration that allows for easy management and triggering of pipelines specific to each environment.
+The project has multiple deployment environments, such as development, QA, staging, and clients. In order to maintain a streamlined and efficient CI/CD process across these environments, we need to decide on a pipeline configuration that allows for easy management and triggering of pipelines specific to each environment.
 
 # Considered Options
 

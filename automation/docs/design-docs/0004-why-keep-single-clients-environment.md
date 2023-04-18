@@ -1,13 +1,13 @@
 ---
 status: implemented
 title: ADR-0004: Creating a Single Environment for All Clients
-description: Decision to create a single environment for all clients in the T-pulse CI/CD pipeline and deploy updates simultaneously for better efficiency
+description: Decision to create a single environment for all clients in the CI/CD pipeline and deploy updates simultaneously for better efficiency
 tags: adr
 ---
 
 # Context and Problem Statement
 
-The T-pulse project has multiple clients, each requiring deployments of updates and new features. Managing separate environments and deployment processes for each client can become complex and time-consuming. We need an efficient and manageable way to deploy updates to all clients while maintaining stability and reducing potential errors.
+The project has multiple clients, each requiring deployments of updates and new features. Managing separate environments and deployment processes for each client can become complex and time-consuming. We need an efficient and manageable way to deploy updates to all clients while maintaining stability and reducing potential errors.
 
 # Considered Options
 

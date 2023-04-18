@@ -1,6 +1,6 @@
-# Troubleshooting Guide for T-pulse CI/CD Pipeline
+# Troubleshooting Guide for automation CI/CD Pipeline
 
-This document provides a troubleshooting guide for common issues that might be encountered when working with the T-pulse CI/CD pipeline.
+This document provides a troubleshooting guide for common issues that might be encountered when working with the automation CI/CD pipeline.
 
 [TOC]
 

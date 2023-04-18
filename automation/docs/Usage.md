@@ -1,4 +1,4 @@
-# Tpulse CI/CD Pipeline - Usage Guide
+# Automation CI/CD Pipeline - Usage Guide
 
 This document provides a comprehensive explanation on how to setup the CI/CD pipelines for both Microservices Architecture (MSA) and Monolithic Architecture projects.
 
@@ -16,7 +16,7 @@ In the MSA approach, applications are broken down into smaller, independently de
 
 ```
 include:
-  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/tpulse/pipelines/backend.gitlab-ci.yml'
+  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/pipelines/backend.gitlab-ci.yml'
 
 variables:
   GIT_STRATEGY: clone
@@ -41,7 +41,7 @@ variables:
 
 ```
 include:
-  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/tpulse/pipelines/frontend.gitlab-ci.yml'
+  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/pipelines/frontend.gitlab-ci.yml'
 
 variables:
   GIT_STRATEGY: clone
@@ -67,7 +67,7 @@ variables:
 
 ```
 include:
-  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/tpulse/pipelines/master.gitlab-ci.yml'
+  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/pipelines/master.gitlab-ci.yml'
 
 variables:
   GIT_STRATEGY: clone
@@ -87,7 +87,8 @@ variables:
 
 - Apart from the default 3 configs, you can also add `n` no. of client configs. Keep the name of the variable in format: `<client_name>_DEPLOYMENT_CONFIG`.
 
-- Finally, since we are also using `all` keyword for simultaneous clients deployment, we have to add `ALL_CLIENTS` variable which would be comma separated client names.
+- Since we are also using `all` keyword for simultaneous clients deployment, we have to add `ALL_CLIENTS` variable which would be comma separated client names.
+- FInally add `PREFIX_PATH` which contains the common prefix path for all repos.
 
 
 

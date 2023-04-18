@@ -1,6 +1,6 @@
-# Introduction to T-pulse CI/CD pipeline
+# Introduction to automation CI/CD pipeline
 
-The project aims to automate the build, test, and deploy aspect of T-pulse software for both MSA and Monolith architectures. This guide is aimed at introducing the design, working, and limitations of CI/CD pipeline.
+The project aims to automate the build, test, and deploy aspect for both MSA and Monolith architectures. This guide is aimed at introducing the design, working, and limitations of CI/CD pipeline.
 
 [TOC]
 

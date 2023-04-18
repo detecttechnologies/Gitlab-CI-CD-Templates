@@ -1,7 +1,7 @@
 ---
 status: implemented
 title: ADR-0007: Creating Separate Environments for Each Client
-description: Decision to revert to separate environments for each client in the T-pulse CI/CD pipeline to gain finer control over deployments
+description: Decision to revert to separate environments for each client in the CI/CD pipeline to gain finer control over deployments
 tags: adr
 supersedes: ADR-0004
 ---

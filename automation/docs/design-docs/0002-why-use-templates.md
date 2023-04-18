@@ -7,7 +7,7 @@ tags: adr
 
 # Context and Problem Statement
 
-T-pulse project supports both Microservices Architecture (MSA) and Monolithic Architecture. The CI/CD pipeline should be able to accommodate the specific requirements of each component and architecture type while keeping the process consistent and manageable.
+We need to support both Microservices Architecture (MSA) and Monolithic Architecture. The CI/CD pipeline should be able to accommodate the specific requirements of each component and architecture type while keeping the process consistent and manageable.
 
 # Considered Options
 

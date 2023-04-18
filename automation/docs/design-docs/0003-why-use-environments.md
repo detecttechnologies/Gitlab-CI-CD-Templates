@@ -1,13 +1,13 @@
 ---
 status: implemented
-title: ADR-0003: Using GitLab Environments for Deployment in T-pulse CI/CD Pipeline
-description: Decision to use GitLab Environments for managing deployment environments and configurations in the T-pulse CI/CD pipeline for better control, traceability, and rollback capabilities
+title: ADR-0003: Using GitLab Environments for Deployment inCI/CD Pipeline
+description: Decision to use GitLab Environments for managing deployment environments and configurations in the CI/CD pipeline for better control, traceability, and rollback capabilities
 tags: adr
 ---
 
 # Context and Problem Statement
 
-The T-pulse project requires deployments to multiple environments, such as development, QA, staging, and client environments. Managing the deployment configurations and environment-specific settings in the CI/CD pipeline is crucial for seamless and efficient deployment across different environments. 
+The project requires deployments to multiple environments, such as development, QA, staging, and client environments. Managing the deployment configurations and environment-specific settings in the CI/CD pipeline is crucial for seamless and efficient deployment across different environments. 
 
 # Considered Options
 
