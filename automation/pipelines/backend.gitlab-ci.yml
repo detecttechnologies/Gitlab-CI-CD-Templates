@@ -35,7 +35,7 @@ build_docker:
     - if: $CI_COMMIT_BRANCH == "test"
       variables:
         DEPLOY_ENVIRONMENT: qa
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_TAG
       variables:
         DEPLOY_ENVIRONMENT: staging
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -92,6 +92,8 @@ semgrep-sast:
 deploy_docker:
   stage: deploy
   image: docker:20
+  tags:
+    - amd64
   environment:
     name: $ENVIRONMENT
   before_script:
@@ -114,7 +116,7 @@ deploy_docker:
         ENVIRONMENT: qa
         DEPLOY_CONFIG: $qa_DEPLOYMENT_CONFIG
       when: manual
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_TAG
       variables:
         DEPLOY_ENVIRONMENT: staging
         ENVIRONMENT: staging

@@ -2,22 +2,21 @@ import sys
 import yaml
 import toml
 import os
+import json
+import base64
 
 DEPLOY_ENVIRONMENT = sys.argv[1]
-CLIENTS = sys.argv[2]
-PATH_PREFIX = os.environ['PATH_PREFIX']
-print(CLIENTS)
+# Get the base64-encoded JSON string from the command-line arguments
+deployments_to_trigger_base64 = sys.argv[2]
 
-# if CLIENTS is "all", then we get ALL_CLIENTS from CI/CD settings variables   
-if CLIENTS == "all":    
-    ALL_CLIENTS = os.environ['ALL_CLIENTS']
-    clients = ALL_CLIENTS.split(',')
-# if CLIENTS is "none", then we get CLIENTS from DEPLOY_ENVIRONMENT
-elif CLIENTS == "none":
-    clients = [DEPLOY_ENVIRONMENT]
-# else CLIENTS is a comma separated list of clients
-else:
-    clients = CLIENTS.split(',')
+# Decode the base64-encoded JSON string
+deployments_to_trigger_json = base64.b64decode(deployments_to_trigger_base64).decode()
+
+# Load the JSON object
+deployments_to_trigger = json.loads(deployments_to_trigger_json)
+
+PATH_PREFIX = os.environ['PATH_PREFIX']
+print(f"deployments_to_trigger: {deployments_to_trigger}")
 
 # Set the BRANCH variable based on DEPLOY_ENVIRONMENT
 if DEPLOY_ENVIRONMENT == 'dev':
@@ -28,7 +27,7 @@ else:
     branch = 'main'
 
 # Loop through each client
-for client in clients:
+for client, repos_to_trigger in deployments_to_trigger.items():
     print(f"client: {client}")
     # Get the config file for the client
     config_content = os.environ[f'{client}_DEPLOYMENT_CONFIG']
@@ -62,12 +61,12 @@ for client in clients:
         repo_name = repo["name"]
         # Check if the latest tag is already deployed for the repo
         # Use a custom script to check the latest deployed tag
-        
-        dynamic_config["trigger_repos"]["parallel"]["matrix"].append({
-            "PROJECTS": repo_name,
-            "PREFIX": f'{PATH_PREFIX}-{repo["type"]}',
-        })
-
+        if repo_name in repos_to_trigger:
+            dynamic_config["trigger_repos"]["parallel"]["matrix"].append({
+                "PROJECTS": repo_name,
+                "PREFIX": f'{PATH_PREFIX}-{repo["type"]}',
+            })
+  
     # Save the dynamic configuration to a file with a unique name for each client
     with open(f'trigger-msa-{client}.yml', 'w') as f:
         yaml.dump(dynamic_config, f)
