@@ -23,7 +23,7 @@ def ec2_deployment(client, repo):
 
     ec2_user = 'ubuntu'
     ci_project_dir = repo['name']
-    local_project_dir = f'{ci_project_dir}/temp-worktree/dist/'
+    local_project_dir = f'{ci_project_dir}/dist/'
     remote_project_dir = '/home/ubuntu/pipeline_folder/dist/'
 
     commands = [

@@ -57,6 +57,7 @@ variables:
     3. staging_DEPLOYMENT_CONFIG
   - These 3 variables are essentially configuration files which contain environment specific aws and ec2 credentials along with repos information
   - To create this file, refer this sample [sample toml config](../configs/sample.toml)
+- To connect to VPN for EC2 deployments, add a config file that contains VPN configuraion in your FE repo. Refer to [sample vpn config](../configs/vpn_config_sample.toml). 
 
 
 ### Master Repository Configuration

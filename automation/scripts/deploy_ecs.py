@@ -65,7 +65,11 @@ def ecs_deployment(client, repo, tag):
     print(f"Updated ECS service. Waiting for service to become stable.")
     
     # Wait for the service to become stable
-    ecs.get_waiter('services_stable').wait(
+    timeout_seconds = 300
+    wait_delay = 20  # Time to wait between checks, in seconds
+    max_attempts = timeout_seconds // wait_delay
+
+    ecs.get_waiter('services_stable', WaiterConfig={'Delay': wait_delay, 'MaxAttempts': max_attempts}).wait(
         cluster=client_cluster_name,
         services=[client_service_name],
     )
