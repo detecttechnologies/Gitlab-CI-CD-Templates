@@ -1,14 +1,13 @@
 #!/bin/bash
 
-# install ssh-agent and set up ssh directory and config
-'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+# SSH configuration
 eval $(ssh-agent -s)
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 
 # # Remove it later
-# cd temp-worktree/dist
+# cd $CI_PROJECT_DIR/dist
 # mv -v s-and-s s-and-s-cicd 
 # cd -
 

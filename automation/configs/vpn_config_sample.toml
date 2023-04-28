@@ -1,0 +1,14 @@
+[vpn]
+config_base64 = "BASE64_ENCODED_VPN_CONFIG"
+config_filename = "YOUR_VPN_CONFIG_FILENAME"
+username = "YOUR_VPN_USERNAME"
+prefix = "YOUR_4_DIGIT_PREFIX"
+totp_secret = "YOUR_TOTP_SECRET"
+
+[keyfile]
+content_base64 = "BASE64_ENCODED_KEYFILE"
+filename = "YOUR_KEYFILE_FILENAME"
+
+[ca_cert]
+content_base64 = "BASE64_ENCODED_CA_CERT"
+filename = "YOUR_CA_CERT_FILENAME"
