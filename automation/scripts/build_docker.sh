@@ -18,9 +18,8 @@ else
     fi
 fi
 
-
-# # cd into the worktree, remove later
-# cd tpulse-HSSE
+# cd into ROOT_FOLDER
+cd $ROOT_FOLDER
 
 # Log in to the container registry
 docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
