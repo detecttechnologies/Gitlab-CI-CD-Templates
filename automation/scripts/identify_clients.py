@@ -39,9 +39,8 @@ def get_latest_deployment(repo, environment, headers):
     deployments = response.json()
 
     # Get the latest successful deployment
-    latest_successful_deployment = deployments[0] if deployments else None
-    latest_deployment = latest_successful_deployment["deployable"]["commit"]["id"]
-    return latest_deployment
+    latest_successful_deployment = deployments[0]["deployable"]["commit"]["id"] if deployments else None
+    return latest_successful_deployment
 
 def trigger_deployment(repo, deployments_to_trigger, client):
     if client not in deployments_to_trigger.keys():

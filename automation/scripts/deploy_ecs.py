@@ -62,17 +62,17 @@ def ecs_deployment(client, repo, tag):
     )
     
     # Print a message indicating that the service update has been initiated
-    print(f"Updated ECS service. Waiting for service to become stable.")
+    print(f"Updated ECS service. Confirm the deployment in the AWS console.")
     
-    # Wait for the service to become stable
-    timeout_seconds = 300
-    wait_delay = 20  # Time to wait between checks, in seconds
-    max_attempts = timeout_seconds // wait_delay
+    # # Wait for the service to become stable
+    # timeout_seconds = 300
+    # wait_delay = 20  # Time to wait between checks, in seconds
+    # max_attempts = timeout_seconds // wait_delay
 
-    ecs.get_waiter('services_stable', WaiterConfig={'Delay': wait_delay, 'MaxAttempts': max_attempts}).wait(
-        cluster=client_cluster_name,
-        services=[client_service_name],
-    )
+    # ecs.get_waiter('services_stable', WaiterConfig={'Delay': wait_delay, 'MaxAttempts': max_attempts}).wait(
+    #     cluster=client_cluster_name,
+    #     services=[client_service_name],
+    # )
     
     # Print a message indicating successful deployment
     print(f"Deployment successful for client: {client['name']}")

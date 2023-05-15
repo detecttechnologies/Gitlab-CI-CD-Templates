@@ -1,7 +1,3 @@
-# master pipeline stages
-stages:
-  - prepare
-
 # overall pipeline rules
 workflow:
   rules:

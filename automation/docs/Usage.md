@@ -64,11 +64,24 @@ variables:
 
 1. Navigate to your master repository,or create one.
 2. Create a `.gitlab-ci.yml` file in the root of your repository, which will define your pipeline configuration.
-3. Use the `include` keyword in the `.gitlab-ci.yml` file to reference a template that handles build, test, and deploy jobs for your Angular application. 
 
 ```
 include:
   - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/pipelines/master.gitlab-ci.yml'
+
+variables:
+  GIT_STRATEGY: clone
+
+```
+
+### Automation Testing Repository Configuration
+
+1. Navigate to your automation testing repository.
+2. Create a `.gitlab-ci.yml` file in the root of your repository, on the branch you want to run the tests, which will define your pipeline configuration.
+
+```
+include:
+  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/dashboard-ci/automation/pipelines/qa_test.gitlab-ci.yml'
 
 variables:
   GIT_STRATEGY: clone

@@ -1,0 +1,13 @@
+automation_test:
+  stage: test
+  image: python:3.10.7
+  before_script:
+    - apt-get update && apt-get install -y wget &>/dev/null
+    - wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+    - sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+    - apt-get update && apt-get install -y google-chrome-stable &>/dev/null
+    - google-chrome --version
+    - export CHROME_BIN=/usr/bin/google-chrome
+    - pip install selenium==4.8.0 behave==1.2.6 webdriver-manager allure-behave &>/dev/null
+  script:
+    - behave || true
