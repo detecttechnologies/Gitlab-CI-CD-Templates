@@ -63,7 +63,7 @@ def find_images(central_path):
 def check_filesize(path):
     file_size = (os.stat(str(path)).st_size)/1000
     if file_size > FILESIZE_LIMIT:
-        sys.exit(f"Error: {central_path} is too large to copy (>500KB). Current size: {file_size}.")
+        sys.exit(f"Error: {path} is too large to copy (>1000KB). Current size: {file_size}.")
     else:
         return True
 
