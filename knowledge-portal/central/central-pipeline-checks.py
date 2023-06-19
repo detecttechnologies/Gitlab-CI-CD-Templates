@@ -8,7 +8,7 @@ changed_files = sys.argv[1:]
 
 CHANGED_FILES = [file for file in changed_files if file.endswith(".md")] 
 MANIFEST_LST = glob("manifests/*.toml")
-FILESIZE_LIMIT = 1000
+FILESIZE_LIMIT = 5000
 
 
 def load_manifests(manifest_file):
@@ -63,7 +63,7 @@ def find_images(central_path):
 def check_filesize(path):
     file_size = (os.stat(str(path)).st_size)/1000
     if file_size > FILESIZE_LIMIT:
-        sys.exit(f"Error: {path} is too large to copy (>1000KB). Current size: {file_size}.")
+        sys.exit(f"Error: {path} is too large to copy (>5000KB). Current size: {file_size}.")
     else:
         return True
 
