@@ -78,5 +78,6 @@ To configure the pipeline, you can use the following variables:
 - `GIT_DEPTH: 1` can be set accordingly. By default it is set to 20 by gitlab.
 - `GIT_SUBMODULE_DEPTH: 1` can be set accordingly
 - `COPY_FILES`: Use this as gitlab multiline variable and provide full path of files/folders that needs to be copied to destination. No `.py` or `.so` files will be copied using this variable. It will skip such files, even if you give entire folder to copy.
-- `EXCLUDE_FILES`: Use this as gitlab multiline variable and provide full path for `.py` files that needs to be excluded before compilation. 
+- `EXCLUDE_FILES`: Use this as gitlab multiline variable and provide full path for files or folders that should be excluded from cythonization. 
+- `RUN_SCRIPTS`: Use this as gitlab multiline variable if you want to run any script in the pipeline before copying over the files to destination.
 

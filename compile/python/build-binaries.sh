@@ -8,16 +8,16 @@ cp -R ./* /app/user/load
 
 # Navigate to the loading directory
 cd /app/user/load
-rm -rfv scripts # So that .py files inside don't get compiled
 
 # Check if the variable $EXCLUDE_FILES is defined
 if [ -z "$EXCLUDE_FILES" ]; then
   echo "EXCLUDE_FILES is not defined"
 else
   # Exclude any python file from cythonization
-  for file in $EXCLUDE_FILES
+  IFS=$'\n' read -rd '' -a exclude_files <<<"$EXCLUDE_FILES"
+  for file in "${exclude_files[@]}"
   do
-    find . -wholename "$file" -exec rm -v "{}" \;
+    find . -path "$file" -prune -exec rm -rv "{}" \;
   done
 fi
 
