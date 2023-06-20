@@ -7,9 +7,20 @@ git config --global user.name "Detect Gitlab Bot"
 # Copy files from artifacts to their original distination and remove artifacts folder
 cwd=$(pwd)
 cd artifacts
-find . -name "**" -exec cp -R --parents \{\} $cwd/ \;
+find . -name "**" -exec cp -Rv --parents \{\} $cwd/ \;
 cd -
 rm -rf artifacts
+
+# Run any necessary script/patch if available in RUN_SCRIPTS variable
+if [ -z "$RUN_SCRIPTS" ]; then
+    echo "RUN_SCRIPTS is not defined"
+else
+    for script in ${RUN_SCRIPTS}
+    do  
+        echo "Executing ${script}"
+        bash $script
+    done
+fi
 
 # Clone destination repo to make it available as local inside pipeline
 git clone "https://oauth2:$BOT_ACCESS_TOKEN@gitlab.com/${BUILD_OUTPUT_REPO}" /root/dest
@@ -54,7 +65,7 @@ do
     # IVA repo specific code
     cp ./iva.py /root/dest/ || true
 
-    # From the build folder, copy the files and folders mentioned in variable "COPY_FILES" while ignoring .py and .so files;
+    # From the build folder, copy the files and folders mentioned in variable "COPY_FILES"
     for file in ${COPY_FILES}
     do
         if [[ "$file" == *"-->"* ]]
@@ -64,7 +75,7 @@ do
             echo "${split[1]}"
             cp -R -v ${split[0]} /root/dest/${split[1]}
         else
-            find . -type f -wholename "*$file*" ! -wholename "./*.so" ! -wholename "./*.py" -exec cp -v -R --parents \{\} /root/dest/ \;
+            find . -type f -wholename "*$file*" ! -wholename "./*.git*" -exec cp -v -R --parents \{\} /root/dest/ \;
         fi
     done
 
@@ -83,9 +94,18 @@ do
     cd /root/dest
     
     git add -A && git commit -m "Commit in source pipeline at timestamp:$timestamp" --allow-empty
+    git push --quiet origin HEAD:${branch} -f
+    
+    cd -
+    # Finally copy the .gitignore
+    cp -v .gitignore /root/dest
+    
+    cd /root/dest
+    git add -A && git commit -m "Commit in source pipeline at timestamp:$timestamp" --allow-empty
     git reflog expire --expire-unreachable=now --all
     git gc --prune=now
-    
+    git push --quiet origin HEAD:${branch} -f
+
     # Merge all commits in one
     git reset $(git commit-tree HEAD^{tree} -m "Commit in source pipeline at timestamp:$timestamp")
     git push --quiet origin HEAD:${branch} -f
