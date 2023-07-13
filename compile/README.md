@@ -33,9 +33,9 @@ variables:
         ./README.md
     GIT_STRATEGY: clone #REQUIRED
     GIT_DEPTH: 1  
-    REMOVE_BRANCHES: "false" 
     EXCLUDE_FILES: |
         ./folder1/test.py
+        ./folder2
 
 # Add this if you only want to build for specific versions
 # IN following case, we are building (py3.6,py3.7) for amd64(x86_64) and (py3.6, py3.7) for arm64(aarch64) architectures respectively
@@ -73,7 +73,6 @@ In the above snippet, `TAG` refers to the GitLab runner being used to run the jo
 
 To configure the pipeline, you can use the following variables:
 
-- `REMOVE_BRANCHES: "true"` removes all destination branches except `main` before pushing.
 - `GIT_STRATEGY: clone` is **required** to ensure that the pipeline in source repository doesn't contain cached files.
 - `GIT_DEPTH: 1` can be set accordingly. By default it is set to 20 by gitlab.
 - `GIT_SUBMODULE_DEPTH: 1` can be set accordingly

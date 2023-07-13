@@ -36,6 +36,8 @@ push_binaries:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
     - git submodule sync && git submodule update --init --recursive
     - apt-get update && apt-get install curl -y
+    - git config --global user.email "PlatformTeam@detecttechnologies.com"
+    - git config --global user.name "Detect Gitlab Bot"
   script:
     - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
   only:
