@@ -22,7 +22,7 @@ ruff:
     - 'pip3 install ruff'
   script:
     - ls .
-    - ruff check . --format gitlab > gl-code-quality-report.json
+    - ruff check . --output-format gitlab > gl-code-quality-report.json
   only:
     refs:
       - merge_requests
