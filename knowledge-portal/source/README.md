@@ -17,6 +17,8 @@ variables:
   GIT_STRATEGY: clone
 
 ```
+**Note: The pipeline can be added to any branch.** On `main`, it runs automatically and on other branches, it needs to be trigerred manually. 
+
 ### Connect your Source Git repository to the Knowledge Portal
 
 Here is an example of a `docs-manifest.toml` file that you can use to create your own and connect your repository to knowledge portal:
