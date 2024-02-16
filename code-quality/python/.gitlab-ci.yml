@@ -1,25 +1,23 @@
-# Runs pylama, black in main, merge_requests
+# Runs ruff, black in main branch and merge_requests
 stages:
-  - code-quality
+  - validate
 
-# Black sub-stage in the code-quality stage
-black:
-  stage: code-quality
-  image: detecttechnologies/python-code-quality:latest
+# Black sub-stage in the validate stage
+cq-black:
+  stage: validate
+  image: pyfound/black:latest_release
   script:
     - black --diff --color --line-length 119 .
-    - black --check --line-length 119 .
+    - black --check --verbose --line-length 119 .
   only:
     refs:
       - merge_requests
       - main
 
-# Ruff sub-stage in the code-quality stage
-ruff:
-  stage: code-quality
-  image: "python:3.10"
-  before_script:
-    - 'pip3 install ruff'
+# Ruff sub-stage in the validate stage
+cq-ruff:
+  stage: validate
+  image: ghcr.io/astral-sh/ruff:latest
   script:
     - ls .
     - ruff check . --output-format gitlab > gl-code-quality-report.json

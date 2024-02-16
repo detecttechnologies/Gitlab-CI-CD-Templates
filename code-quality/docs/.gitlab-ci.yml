@@ -1,0 +1,23 @@
+stages:
+  - validate
+
+docs-spellcheck:
+  stage: validate
+  image: python:slim
+  before_script:
+    - pip install codespell
+    - shopt -s globstar # Enable globbing using '*' in the shell, for the main script
+  script:
+    - FILES_TO_SPELLCHECK=$( (ls **/*.py; ls **/*.md) | tr '\n' ' ')
+    - echo "Spellchecking the following files - ${FILES_TO_SPELLCHECK}"
+    - codespell ${FILES_TO_SPELLCHECK}
+  only:
+    refs:
+      - merge_requests
+      - main
+
+docs-markdownlint:
+  stage: validate
+  image: registry.gitlab.com/pipeline-components/markdownlint:latest
+  script:
+    - mdl --style all --warnings .
