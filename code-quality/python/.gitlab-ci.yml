@@ -9,24 +9,32 @@ cq-black:
   script:
     - black --diff --color --line-length 119 .
     - black --check --verbose --line-length 119 .
-  only:
-    refs:
-      - merge_requests
-      - main
+  rules:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
+      when: never
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
 
 # Ruff sub-stage in the validate stage
 cq-ruff:
   stage: validate
-  image: ghcr.io/astral-sh/ruff:latest
+  image: pipelinecomponents/ruff
   script:
     - ls .
+    - ruff check .
     - ruff check . --output-format gitlab > gl-code-quality-report.json
-  only:
-    refs:
-      - merge_requests
-      - main
+  rules:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
+      when: never
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
   artifacts:
     name: "${CI_PROJECT_NAME}_code_quality"
     when: always
     reports:
       codequality: gl-code-quality-report.json
+
