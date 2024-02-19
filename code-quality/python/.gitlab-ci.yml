@@ -20,7 +20,9 @@ cq-black:
 # Ruff sub-stage in the validate stage
 cq-ruff:
   stage: validate
-  image: pipelinecomponents/ruff
+  image: python:slim
+  before_script:
+    - pip install ruff
   script:
     - ls .
     - ruff check .
@@ -37,4 +39,3 @@ cq-ruff:
     when: always
     reports:
       codequality: gl-code-quality-report.json
-
