@@ -1,6 +1,27 @@
 stages:
   - validate
 
+
+MR-title-check:
+  stage: validate
+  script:
+    - |
+      FIRST_CHAR="${CI_MERGE_REQUEST_TITLE%"${CI_MERGE_REQUEST_TITLE#?}"}"
+      case "${FIRST_CHAR}" in
+        [\u0000-\u007F]*)
+          echo "Merge request title does not start with a unicode gitmoji. Validation failed."
+          exit 1
+          ;;
+        *)
+          echo "Merge request title starts with a non-ASCII(0-127) character, and possibly a unicode gitmoji. Validation passed."
+          ;;
+      esac
+  rules:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+
 docs-spellcheck:
   stage: validate
   image: python:slim
@@ -11,13 +32,23 @@ docs-spellcheck:
     - FILES_TO_SPELLCHECK=$( (ls **/*.py; ls **/*.md) | tr '\n' ' ')
     - echo "Spellchecking the following files - ${FILES_TO_SPELLCHECK}"
     - codespell ${FILES_TO_SPELLCHECK}
-  only:
-    refs:
-      - merge_requests
-      - main
+  rules:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
+      when: never
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
 
 docs-markdownlint:
   stage: validate
   image: registry.gitlab.com/pipeline-components/markdownlint:latest
   script:
     - mdl --style all --warnings .
+  rules:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
+      when: never
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
