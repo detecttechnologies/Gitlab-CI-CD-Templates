@@ -20,9 +20,10 @@ cq-black:
 # Ruff sub-stage in the validate stage
 cq-ruff:
   stage: validate
-  image: ghcr.io/astral-sh/ruff:latest
+  image: pipelinecomponents/ruff
   script:
     - ls .
+    - ruff check .
     - ruff check . --output-format gitlab > gl-code-quality-report.json
   rules:
     - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
@@ -36,3 +37,4 @@ cq-ruff:
     when: always
     reports:
       codequality: gl-code-quality-report.json
+

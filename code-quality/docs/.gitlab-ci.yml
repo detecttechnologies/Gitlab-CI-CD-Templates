@@ -1,7 +1,6 @@
 stages:
   - validate
 
-
 MR-title-check:
   stage: validate
   script:
@@ -17,8 +16,6 @@ MR-title-check:
           ;;
       esac
   rules:
-    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
-      when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: always
 
