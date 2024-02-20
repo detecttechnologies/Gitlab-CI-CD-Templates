@@ -45,3 +45,10 @@ docs-markdownlint:
   stage: validate
   script:
     - docker run -v $(pwd):/workspace -w /workspace ghcr.io/igorshubovych/markdownlint-cli:latest --disable MD033 MD013 MD034 MD041 MD024 MD036 -- .
+  rules:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
+      when: never
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
