@@ -28,6 +28,8 @@ build_image:
     - docker build -t $CI_REGISTRY_IMAGE:$TAG -f docker/Dockerfile .
     - docker push $CI_REGISTRY_IMAGE:$TAG
   rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       variables:
         TAG: merge_requests
@@ -114,6 +116,7 @@ deploy_docker:
   script:
     - python3 /app/scripts/get_config_files.py
     - python3 /app/scripts/push_ecr.py
+    - python 3/app/scripts/update_ecs_service.py
     - python3 /app/scripts/restart_ecs.py
   rules:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
