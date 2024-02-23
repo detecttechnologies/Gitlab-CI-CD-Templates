@@ -4,6 +4,7 @@ build-check-submodules:
   tags:
     - saas-linux-small-amd64
   script:
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
     - git submodule sync && git submodule update --init --recursive
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
