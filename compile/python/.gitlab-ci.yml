@@ -1,3 +1,13 @@
+# Check if all the submodules that have been added are valid submodules (Ex: a submodule accidentally being added with `git clone` instead of `git submodule add`) (If not, the next CI jobs will fail otherwise)
+build-check-submodules:
+  stage: validate
+  tags:
+    - saas-linux-small-amd64
+  script:
+    - git submodule sync && git submodule update --init --recursive
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
 build_binaries:
   stage: build
   image: 
