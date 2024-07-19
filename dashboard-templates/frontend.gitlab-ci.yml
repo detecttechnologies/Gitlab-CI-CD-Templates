@@ -111,8 +111,6 @@ deploy_package:
   image: registry.gitlab.com/detecttechnologies/software/webapps/t-pulse/web/tpulse-msa/tpulse-msa-cicd:production
   variables:
     DOCKER_AUTH_CONFIG: '{"auths":{"registry.gitlab.com":{"username":"${CI_CD_API_USER}","password":"${CI_CD_API_TOKEN}"}}}'
-  tags:
-    - saas-linux-medium-amd64
   environment:
     name: $LIFECYCLE_STAGE
   script:
