@@ -117,7 +117,7 @@ deploy_package:
     - python3 /app/scripts/get_config_files.py
     - service chrony start
     - python3 /app/scripts/connect_vpn.py
-    - sleep 5s
+    - sleep 20s
     - echo "nameserver 8.8.8.8" >> /etc/resolv.conf
     - IP_ADDRESS=$(curl ifconfig.me)
     - echo "Public IP Address:$IP_ADDRESS"
