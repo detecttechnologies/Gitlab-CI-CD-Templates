@@ -1,0 +1,24 @@
+# -----------------------------------------------
+# GitLab CI job for building Node.js packages
+# Uses Node 16.14.2 environment
+# Runs on tags and merge requests when package.json exists
+# Package versions are set as:
+#  - git "version" and "latest" tag when triggered by tagging a commit
+#  - "merge" tag when triggered by merge requests
+# -----------------------------------------------
+build_package:
+  stage: build
+  tags:
+    - saas-linux-medium-amd64
+  image: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/delivery-pipelines/node:latest
+  script:
+    - chmod +x /workdir/build_package.sh
+    - bash /workdir/build_package.sh
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        VERSION_TAG: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        VERSION_TAG: "merge"
+    - when: never
