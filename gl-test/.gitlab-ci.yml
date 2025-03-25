@@ -1,0 +1,56 @@
+include:
+  - template: Jobs/Code-Quality.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+semgrep-sast:
+  script:
+    - /analyzer run
+    - mv gl-sast-report.json semgrep-sast-report.json
+  artifacts:
+    paths:
+      - semgrep-sast-report.json
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
+
+nodejs-scan-sast:
+  script:
+    - /analyzer run
+    - mv gl-sast-report.json nodejs-scan-sast-report.json
+  artifacts:
+    paths:
+      - nodejs-scan-sast-report.json
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      exists: "package.json"
+    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
+      exists: "package.json"
+
+secret_detection:
+  script:
+    - /analyzer run
+    - mv gl-secret-detection-report.json secret-detection-report.json
+  artifacts:
+    paths:
+      - secret-detection-report.json
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
+
+code_quality:
+  rules:
+    - if: $CODE_QUALITY_DISABLED
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+analyze_reports:
+  stage: report
+  script:
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/gl-test/analyze_test_reports.sh)"
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge-request-event"

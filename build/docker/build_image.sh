@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+
+# Set default APP_NAME if not provided
+if [ -z "$APP_NAME" ]; then
+  APP_NAME="${CI_PROJECT_NAME}"
+  echo "APP_NAME not provided, defaulting to: $APP_NAME"
+fi
+
+# Parse BUILD_ARGS into proper format
+BUILD_ARGS_FORMATTED=""
+if [ -n "$BUILD_ARGS" ]; then
+  IFS=',' read -ra ARG_ARRAY <<< "$BUILD_ARGS"
+  for arg in "${ARG_ARRAY[@]}"; do
+    BUILD_ARGS_FORMATTED="$BUILD_ARGS_FORMATTED --build-arg $arg"
+  done
+fi
+
+# Extract directory and filename from DOCKERFILE_PATH
+DOCKERFILE_PATH=${DOCKERFILE_PATH:-Dockerfile}
+DOCKERFILE_DIR=$(dirname "$DOCKERFILE_PATH")
+DOCKERFILE_NAME=$(basename "$DOCKERFILE_PATH")
+
+# Verify dockerfile exists
+if [ ! -f "$DOCKERFILE_PATH" ]; then
+  echo "Dockerfile not found at $DOCKERFILE_PATH"
+  exit 1
+fi
+
+# Navigate to directory if not in root
+if [ "$DOCKERFILE_DIR" != "." ]; then
+  echo "Changing to directory: $DOCKERFILE_DIR"
+  cd "$DOCKERFILE_DIR"
+fi
+
+# Build the image
+if [ -n "$CI_COMMIT_TAG" ]; then
+  echo "Building tagged version: $CI_COMMIT_TAG"
+  docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
+    -t "${CI_REGISTRY_IMAGE}/${APP_NAME}:${CI_COMMIT_TAG}" \
+    -t "${CI_REGISTRY_IMAGE}/${APP_NAME}:latest" \
+    $BUILD_ARGS_FORMATTED \
+    -f "$DOCKERFILE_NAME" .
+else
+  echo "Building version: ${VERSION_TAG:-latest}"
+  docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
+    -t "${CI_REGISTRY_IMAGE}/${APP_NAME}:${VERSION_TAG:-latest}" \
+    $BUILD_ARGS_FORMATTED \
+    -f "$DOCKERFILE_NAME" .
+fi
