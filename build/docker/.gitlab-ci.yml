@@ -13,7 +13,7 @@ build:
     - docker:dind
   variables:
     DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
   tags:
     - amd64
   before_script:
@@ -21,10 +21,9 @@ build:
     - docker login registry.gitlab.com -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
     - docker buildx version || true
     - docker buildx create --name mybuilder --driver docker-container --use
-    - docker buildx version
     - docker buildx inspect --bootstrap
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/build/node/build_image.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/build/docker/build_image.sh)"
   rules:
     - if: $CI_COMMIT_TAG
       variables:

@@ -34,7 +34,7 @@ To include the build pipeline in your project, create/update a `.gitlab-ci.yml` 
 
 ```yaml
 include:
-    - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/build/docker.gitlab-ci.yml'
+    - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/build/docker/.gitlab-ci.yml'
 
 variables:
     DOCKERFILE_PATH: "Dockerfile"
@@ -62,7 +62,7 @@ To include the build pipeline in your project, create/update a `.gitlab-ci.yml` 
 
 ```yaml
     include:
-        - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/build/npm.gitlab-ci.yml'
+        - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/build/node/.gitlab-ci.yml'
 ```
 
 ## Troubleshooting
