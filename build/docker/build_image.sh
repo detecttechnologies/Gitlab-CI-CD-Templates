@@ -1,10 +1,12 @@
 #!/bin/bash
 set -e
 
-# Set default APP_NAME if not provided
+# Set IMAGE_NAME
 if [ -z "$APP_NAME" ]; then
-  APP_NAME="${CI_PROJECT_NAME}"
-  echo "APP_NAME not provided, defaulting to: $APP_NAME"
+  IMAGE_NAME="${CI_REGISTRY_IMAGE}"
+  echo "APP_NAME not provided, defaulting to: $IMAGE_NAME"
+else
+  IMAGE_NAME="${IMAGE_NAME}"
 fi
 
 # Parse BUILD_ARGS into proper format
@@ -37,14 +39,14 @@ fi
 if [ -n "$CI_COMMIT_TAG" ]; then
   echo "Building tagged version: $CI_COMMIT_TAG"
   docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
-    -t "${CI_REGISTRY_IMAGE}/${APP_NAME}:${CI_COMMIT_TAG}" \
-    -t "${CI_REGISTRY_IMAGE}/${APP_NAME}:latest" \
+    -t "${IMAGE_NAME}:${CI_COMMIT_TAG}" \
+    -t "${IMAGE_NAME}:latest" \
     $BUILD_ARGS_FORMATTED \
     -f "$DOCKERFILE_NAME" .
 else
   echo "Building version: ${VERSION_TAG:-latest}"
   docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
-    -t "${CI_REGISTRY_IMAGE}/${APP_NAME}:${VERSION_TAG:-latest}" \
+    -t "${IMAGE_NAME}:${VERSION_TAG:-latest}" \
     $BUILD_ARGS_FORMATTED \
     -f "$DOCKERFILE_NAME" .
 fi

@@ -8,9 +8,9 @@
 # -----------------------------------------------
 build_package:
   stage: build
+  image: node:16.14.2
   tags:
     - saas-linux-medium-amd64
-  image: node:16.14.2
   script:
     - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/build/node/build_package.sh)"
   rules:

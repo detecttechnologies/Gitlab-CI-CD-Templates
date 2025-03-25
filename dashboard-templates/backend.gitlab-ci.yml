@@ -1,9 +1,3 @@
-include:
-  - template: Jobs/Code-Quality.gitlab-ci.yml
-  - template: Security/SAST.gitlab-ci.yml
-  - template: Security/Secret-Detection.gitlab-ci.yml
-  - template: Jobs/Container-Scanning.gitlab-ci.yml
-
 stages:
   - build
   - test
@@ -15,77 +9,8 @@ default:
   tags:
     - amd64
 
-build_image:
-  stage: build
-  image: docker:20
-  tags:
-    - saas-linux-medium-amd64
-  services: 
-    - docker:dind
-  script:
-    - cd $ROOT_FOLDER
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:$TAG -f docker/Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE:$TAG
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "pipeline"
-      when: never
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      variables:
-        TAG: merge_requests
-    - if: $CI_COMMIT_TAG
-      variables:
-        TAG: $CI_COMMIT_TAG
-    - when: never
-
-semgrep-sast:
-  script:
-    - /analyzer run
-    - mv gl-sast-report.json semgrep-sast-report.json
-  artifacts:
-    paths:
-      - semgrep-sast-report.json
-  rules:
-    - if: $CI_COMMIT_BRANCH
-    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
-
-secret_detection:
-  script:
-    - /analyzer run
-    - mv gl-secret-detection-report.json secret-detection-report.json
-  artifacts:
-    paths:
-      - secret-detection-report.json
-  rules:
-    - if: $CI_COMMIT_BRANCH
-    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
-
-code_quality:
-  rules:
-    - if: $CODE_QUALITY_DISABLED
-      when: never
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - when: never
-
-container_scanning:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      variables:
-        TAG: merge_requests
-        GIT_STRATEGY: fetch
-        CS_IMAGE: $CI_REGISTRY_IMAGE:$TAG
-
-analyze_reports:
-  stage: post
-  image: registry.gitlab.com/detecttechnologies/software/webapps/t-pulse/web/tpulse-msa/tpulse-msa-cicd:production
-  variables:
-    DOCKER_AUTH_CONFIG: '{"auths":{"registry.gitlab.com":{"username":"${CI_CD_API_USER}","password":"${CI_CD_API_TOKEN}"}}}'
-  script:
-    - bash /app/scripts/analyze_reports.sh
-  allow_failure: true
-  rules:
-    - if: $CI_COMMIT_BRANCH
-    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
+include:
+  - remote: 'https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/build/docker.gitlab-ci.yml'
 
 update_version_manifest:
   stage: post

@@ -2,41 +2,33 @@ include:
   - template: Jobs/Code-Quality.gitlab-ci.yml
   - template: Security/SAST.gitlab-ci.yml
   - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
 
 semgrep-sast:
-  script:
-    - /analyzer run
-    - mv gl-sast-report.json semgrep-sast-report.json
   artifacts:
     paths:
-      - semgrep-sast-report.json
+      - gl-sast-report.json
   rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
     - if: $CI_COMMIT_BRANCH
-    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
-
-nodejs-scan-sast:
-  script:
-    - /analyzer run
-    - mv gl-sast-report.json nodejs-scan-sast-report.json
-  artifacts:
-    paths:
-      - nodejs-scan-sast-report.json
-  rules:
-    - if: $CI_COMMIT_BRANCH
-      exists: "package.json"
-    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
-      exists: "package.json"
 
 secret_detection:
-  script:
-    - /analyzer run
-    - mv gl-secret-detection-report.json secret-detection-report.json
   artifacts:
     paths:
-      - secret-detection-report.json
+      - gl-secret-detection-report.json
   rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
     - if: $CI_COMMIT_BRANCH
-    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
 
 code_quality:
   rules:
@@ -45,12 +37,58 @@ code_quality:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_TAG
 
-analyze_reports:
+container_scanning:
+  before_script:
+    - |
+      # Set VERSION_TAG based on pipeline source
+      if [[ -n "$CI_COMMIT_TAG" ]]; then
+        VERSION_TAG="$CI_COMMIT_TAG"
+      elif [[ "$CI_PIPELINE_SOURCE" == "merge_request_event" ]]; then
+        VERSION_TAG="merge"
+      fi
+
+      # Set GIT_STRATEGY
+      GIT_STRATEGY="fetch"
+
+      # Set CS_IMAGE dynamically based on APP_NAME
+      if [[ -n "$APP_NAME" ]]; then
+        CS_IMAGE="$CI_REGISTRY_IMAGE/$APP_NAME:$VERSION_TAG"
+      else
+        CS_IMAGE="$CI_REGISTRY_IMAGE:$VERSION_TAG"
+      fi
+
+      # Export variables for use in later stages
+      export VERSION_TAG
+      export GIT_STRATEGY
+      export CS_IMAGE
+
+      echo "VERSION_TAG set to: $VERSION_TAG"
+      echo "GIT_STRATEGY set to: $GIT_STRATEGY"
+      echo "CS_IMAGE set to: $CS_IMAGE"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_TAG
+
+
+
+analyze_test_reports:
   stage: report
+  image: alpine
+  before_script: 
+    - apk add curl bash jq
   script:
     - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/gl-test/analyze_test_reports.sh)"
   allow_failure: true
   rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
     - if: $CI_COMMIT_BRANCH
-    - if: $CI_PIPELINE_SOURCE == "merge-request-event"
+  artifacts:
+    reports:
+      metrics: metrics.txt
