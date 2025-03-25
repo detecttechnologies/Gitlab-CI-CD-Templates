@@ -19,7 +19,7 @@ build_binaries:
    - git submodule sync && git submodule update --init --recursive
    - apt-get update && apt-get install curl -y
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/compile/python/build-binaries.sh)"
   artifacts:
     paths:
       - artifacts/
@@ -50,7 +50,7 @@ push_binaries:
     - git config --global user.email "PlatformTeam@detecttechnologies.com"
     - git config --global user.name "Detect Gitlab Bot"
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/compile/python/push-binaries.sh)"
   only:
     refs:
       - main
