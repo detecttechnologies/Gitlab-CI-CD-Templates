@@ -113,6 +113,8 @@ deploy_package:
     DOCKER_AUTH_CONFIG: '{"auths":{"registry.gitlab.com":{"username":"${CI_CD_API_USER}","password":"${CI_CD_API_TOKEN}"}}}'
   environment:
     name: $LIFECYCLE_STAGE
+  tags:
+    - saas-linux-medium-amd64
   script:
     - python3 /app/scripts/get_config_files.py
     - service chrony start
