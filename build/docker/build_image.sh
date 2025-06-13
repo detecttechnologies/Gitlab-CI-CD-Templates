@@ -6,7 +6,7 @@ if [ -z "$APP_NAME" ]; then
   IMAGE_NAME="${CI_REGISTRY_IMAGE}"
   echo "APP_NAME not provided, defaulting to: $IMAGE_NAME"
 else
-  IMAGE_NAME="${IMAGE_NAME}"
+  IMAGE_NAME="${APP_NAME}"
 fi
 
 # Parse BUILD_ARGS into proper format
