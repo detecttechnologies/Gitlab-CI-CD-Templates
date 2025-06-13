@@ -6,7 +6,7 @@ if [ -z "$APP_NAME" ]; then
   IMAGE_NAME="${CI_REGISTRY_IMAGE}"
   echo "APP_NAME not provided, defaulting to: $IMAGE_NAME"
 else
-  IMAGE_NAME="${APP_NAME}"
+  IMAGE_NAME="${CI_REGISTRY_IMAGE}/${APP_NAME}"
 fi
 
 # Parse BUILD_ARGS into proper format
@@ -17,6 +17,8 @@ if [ -n "$BUILD_ARGS" ]; then
     BUILD_ARGS_FORMATTED="$BUILD_ARGS_FORMATTED --build-arg $arg"
   done
 fi
+
+echo $BUILD_ARGS_FORMATTED
 
 # Extract directory and filename from DOCKERFILE_PATH
 DOCKERFILE_PATH=${DOCKERFILE_PATH:-Dockerfile}
@@ -37,14 +39,14 @@ fi
 
 # Build the image
 if [ -n "$CI_COMMIT_TAG" ]; then
-  echo "Building tagged version: $CI_COMMIT_TAG"
+  echo "Building image: ${IMAGE_NAME}:${CI_COMMIT_TAG}"
   docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
     -t "${IMAGE_NAME}:${CI_COMMIT_TAG}" \
     -t "${IMAGE_NAME}:latest" \
     $BUILD_ARGS_FORMATTED \
     -f "$DOCKERFILE_NAME" .
 else
-  echo "Building version: ${VERSION_TAG:-latest}"
+  echo "Building image: ${IMAGE_NAME}:${VERSION_TAG:-latest}"
   docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
     -t "${IMAGE_NAME}:${VERSION_TAG:-latest}" \
     $BUILD_ARGS_FORMATTED \
