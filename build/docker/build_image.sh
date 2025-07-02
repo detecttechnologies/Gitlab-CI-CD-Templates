@@ -38,17 +38,8 @@ if [ "$DOCKERFILE_DIR" != "." ]; then
 fi
 
 # Build the image
-if [ -n "$CI_COMMIT_TAG" ]; then
-  echo "Building image: ${IMAGE_NAME}:${CI_COMMIT_TAG}"
-  docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
-    -t "${IMAGE_NAME}:${CI_COMMIT_TAG}" \
-    -t "${IMAGE_NAME}:latest" \
-    $BUILD_ARGS_FORMATTED \
-    -f "$DOCKERFILE_NAME" .
-else
-  echo "Building image: ${IMAGE_NAME}:${VERSION_TAG:-latest}"
-  docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
-    -t "${IMAGE_NAME}:${VERSION_TAG:-latest}" \
-    $BUILD_ARGS_FORMATTED \
-    -f "$DOCKERFILE_NAME" .
-fi
+echo "Building image: ${IMAGE_NAME}:${VERSION}"
+docker buildx build --platform ${PLATFORMS:-linux/amd64} --push \
+  -t "${IMAGE_NAME}:${VERSION}" \
+  $BUILD_ARGS_FORMATTED \
+  -f "$DOCKERFILE_NAME" .

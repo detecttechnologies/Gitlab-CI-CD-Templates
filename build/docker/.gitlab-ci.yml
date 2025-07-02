@@ -27,8 +27,14 @@ build:
   rules:
     - if: $CI_COMMIT_TAG
       variables:
-        VERSION_TAG: $CI_COMMIT_TAG
+        VERSION: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       variables:
-        VERSION_TAG: "merge"
+        VERSION: "merge"
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        VERSION: "production"
+    - if: $CI_COMMIT_BRANCH == "develop"
+      variables:
+        VERSION: "dev"
     - when: never
