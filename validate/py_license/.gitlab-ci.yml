@@ -1,0 +1,89 @@
+license-check:
+  stage: test
+  before_script:
+    - pip install pip-licenses jq
+  script:
+    - echo "Checking packages against approved public license whitelist"
+    # Generate reports
+    - pip-licenses --from=mixed --format=markdown --output-file=licenses.md
+    - pip-licenses --from=mixed --format=json --output-file=licenses.json
+    # Define approved public licenses
+    - |
+      cat > approved_licenses.txt << 'EOF'
+      MIT
+      Apache
+      Apache-2.0
+      Apache 2.0
+      BSD-3-Clause
+      BSD-2-Clause
+      BSD
+      ISC
+      Unlicense
+      CC0-1.0
+      MPL-2.0
+      EPL-2.0
+      Artistic-2.0
+      Zlib
+      Python-2.0
+      GPL-3.0
+      GPL-2.0
+      LGPL
+      AGPL-3.0
+      CC-BY-4.0
+      CC-BY-SA-4.0
+      Public Domain
+      MPL
+      Python Software Foundation License
+      EOF
+    # Check each package against approved list
+    - |
+      echo "=== Validating Licenses ==="
+      
+      # Get all unique licenses (handle spaces properly)
+      ALL_LICENSES=$(pip-licenses --from=mixed --format=json | jq -r '.[].License' | sort -u)
+      
+      # Check each license with fuzzy matching (handle multi-word licenses)
+      echo "$ALL_LICENSES" | while IFS= read -r license; do
+        # Skip empty licenses
+        if [ -z "$license" ]; then
+          continue
+        fi
+        
+        # Try to match license against approved list (case-insensitive, partial matching)
+        MATCHED=false
+        while IFS= read -r approved_license; do
+          # Skip empty lines and comments
+          if [[ -z "$approved_license" || "$approved_license" =~ ^[[:space:]]*# ]]; then
+            continue
+          fi
+          
+          # Check if license matches (case-insensitive, partial match)
+          if [[ "$license" =~ $approved_license ]] || [[ "$approved_license" =~ $license ]]; then
+            MATCHED=true
+            echo "✓ License '$license' matches approved license '$approved_license'"
+            break
+          fi
+        done < approved_licenses.txt
+        
+        if [ "$MATCHED" = false ]; then
+          echo "ERROR: License '$license' is not in approved public license list"
+          echo "Packages with this license:"
+          pip-licenses --from=mixed --format=json | jq -r ".[] | select(.License == \"$license\") | \"  \(.Name): \(.License)\""
+          echo "Please ensure all packages use approved public licenses."
+          exit 1
+        fi
+      done
+      
+      echo "All packages have approved public licenses ✓"
+    # Show summary
+    - |
+      echo "=== License Summary ==="
+      echo "Total packages: $(pip-licenses --from=mixed --format=json | jq length)"
+      echo "Unique licenses: $(pip-licenses --from=mixed --format=json | jq -r '.[].License' | sort -u | wc -l)"
+      echo "License distribution:"
+      pip-licenses --from=mixed --format=json | jq -r '.[].License' | sort | uniq -c | sort -nr
+  artifacts:
+    paths:
+      - licenses.md
+      - licenses.json
+    expire_in: 1 week
