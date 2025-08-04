@@ -31,9 +31,10 @@ if [ ! -f "$DOCKERFILE_PATH" ]; then
   exit 1
 fi
 
-# Navigate to directory if not in root
-if [ "$DOCKERFILE_DIR" != "." ]; then
-  echo "Changing to directory: $DOCKERFILE_DIR"
+# Get RUN_DIR from variables and cd into it if available or use DOCKERFILE_DIR
+if [ -n "$RUN_DIR" ]; then
+  cd "$RUN_DIR"
+else
   cd "$DOCKERFILE_DIR"
 fi
 
