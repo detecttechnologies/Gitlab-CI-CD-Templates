@@ -30,6 +30,7 @@ fi
 # Get RUN_DIR from variables and cd into it if available or use DOCKERFILE_DIR
 if [ -n "$RUN_DIR" ]; then
   cd "$RUN_DIR"
+  DOCKERFILE_NAME=$DOCKERFILE_PATH
 else
   # Extract directory and filename from DOCKERFILE_PATH
   DOCKERFILE_DIR=$(dirname "$DOCKERFILE_PATH")
