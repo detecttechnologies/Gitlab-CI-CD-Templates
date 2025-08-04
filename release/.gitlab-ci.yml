@@ -9,7 +9,6 @@ release:
 
     # 2) Prepare files list
     - FILES_TO_ZIP=$(echo "$RELEASE_FILES" | tr ',' ' ')
-    - echo "Zipping the following files: $FILES_TO_ZIP"
 
     # 3) Zip up your files
     - zip -r release.zip $FILES_TO_ZIP
