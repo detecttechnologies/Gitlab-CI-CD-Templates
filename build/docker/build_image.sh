@@ -20,12 +20,8 @@ fi
 
 echo $BUILD_ARGS_FORMATTED
 
-# Extract directory and filename from DOCKERFILE_PATH
-DOCKERFILE_PATH=${DOCKERFILE_PATH:-Dockerfile}
-DOCKERFILE_DIR=$(dirname "$DOCKERFILE_PATH")
-DOCKERFILE_NAME=$(basename "$DOCKERFILE_PATH")
-
 # Verify dockerfile exists
+DOCKERFILE_PATH=${DOCKERFILE_PATH:-Dockerfile}
 if [ ! -f "$DOCKERFILE_PATH" ]; then
   echo "Dockerfile not found at $DOCKERFILE_PATH"
   exit 1
@@ -35,6 +31,9 @@ fi
 if [ -n "$RUN_DIR" ]; then
   cd "$RUN_DIR"
 else
+  # Extract directory and filename from DOCKERFILE_PATH
+  DOCKERFILE_DIR=$(dirname "$DOCKERFILE_PATH")
+  DOCKERFILE_NAME=$(basename "$DOCKERFILE_PATH")
   cd "$DOCKERFILE_DIR"
 fi
 
