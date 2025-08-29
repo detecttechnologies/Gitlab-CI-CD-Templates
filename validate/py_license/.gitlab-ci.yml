@@ -1,5 +1,5 @@
 license-check:
-  image: python:3.13-alpine
+  image: python:3.13-slim
   stage: test
   before_script:
     - pip install pip-licenses jq
