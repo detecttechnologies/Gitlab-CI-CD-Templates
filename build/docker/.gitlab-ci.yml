@@ -6,8 +6,25 @@
 #  - git `version` , and `latest` tag, whenever a commit is tagged
 #  - "merge" when triggered by merge requests
 # -----------------------------------------------
+
+# Job to set pipeline variables that will be available to all subsequent jobs
+set-build-vars:
+  stage: build
+  image: alpine
+  script:
+    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/build/docker/set_build_vars.sh)"
+  artifacts:
+    reports:
+      dotenv: build_variables.env
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "main"
+
 build:
   stage: build
+  needs:
+    - set-build-vars
   image: docker:23
   services:
     - docker:dind
