@@ -11,6 +11,8 @@
 set-build-vars:
   stage: build
   image: alpine
+  before_script:
+    - apk add bash git curl
   script:
     - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/develop/build/docker/set_build_vars.sh)"
   artifacts:
