@@ -27,14 +27,13 @@ docs-spellcheck:
   script:
     - FILES_TO_SPELLCHECK=$( (ls **/*.py; ls **/*.md) | tr '\n' ' ')
     - echo "Spellchecking the following files - ${FILES_TO_SPELLCHECK}"
-    - codespell ${FILES_TO_SPELLCHECK}
+    - codespell ${FILES_TO_SPELLCHECK} 2>&1 | tee spellcheck-report.txt || true
+  artifacts:
+    paths:
+      - spellcheck-report.txt
+    expire_in: 1 week
   rules:
-    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
-      when: never
-    - if: '$CI_COMMIT_REF_NAME == "main"'
-      when: always
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
+    - when: always
 
 services:
   - docker:dind
@@ -44,11 +43,11 @@ docs-markdownlint:
   stage: test
   needs: []
   script:
-    - docker run -v $(pwd):/workspace -w /workspace ghcr.io/igorshubovych/markdownlint-cli:latest --disable MD033 MD013 MD034 MD041 MD024 MD036 -- .
+    - docker pull ghcr.io/igorshubovych/markdownlint-cli:latest
+    - docker run -v $(pwd):/workspace -w /workspace ghcr.io/igorshubovych/markdownlint-cli:latest --disable MD033 MD013 MD034 MD041 MD024 MD036 -- . 2>&1 | tee markdownlint-report.txt || true
+  artifacts:
+    paths:
+      - markdownlint-report.txt
+    expire_in: 1 week
   rules:
-    - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
-      when: never
-    - if: '$CI_COMMIT_REF_NAME == "main"'
-      when: always
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
+    - when: always
