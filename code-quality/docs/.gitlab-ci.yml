@@ -1,8 +1,6 @@
-stages:
-  - validate
-
 MR-title-check:
-  stage: validate
+  stage: test
+  needs: []
   script:
     - |
       FIRST_CHAR="${CI_MERGE_REQUEST_TITLE%"${CI_MERGE_REQUEST_TITLE#?}"}"
@@ -20,7 +18,8 @@ MR-title-check:
       when: always
 
 docs-spellcheck:
-  stage: validate
+  stage: test
+  needs: []
   image: python:slim
   before_script:
     - pip install codespell
@@ -42,7 +41,8 @@ services:
 
 docs-markdownlint:
   image: docker:latest
-  stage: validate
+  stage: test
+  needs: []
   script:
     - docker run -v $(pwd):/workspace -w /workspace ghcr.io/igorshubovych/markdownlint-cli:latest --disable MD033 MD013 MD034 MD041 MD024 MD036 -- .
   rules:
