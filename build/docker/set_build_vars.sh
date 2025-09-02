@@ -26,8 +26,6 @@ fi
 IMAGE_TAG="${IMAGE_NAME}:${VERSION}"
 
 # Create variables file for other jobs to source
-cat > build_variables.env << EOL
-export IMAGE_TAG="$IMAGE_TAG"
-EOL
+printf 'export IMAGE_TAG="%s"\n' "$IMAGE_TAG" > build_variables.env
 
 echo "IMAGE_TAG is set to: $IMAGE_TAG"
