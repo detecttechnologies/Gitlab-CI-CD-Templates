@@ -6,6 +6,14 @@
 #  - git `version` , and `latest` tag, whenever a commit is tagged
 #  - "merge" when triggered by merge requests
 # -----------------------------------------------
+
+variables:
+  SCRIPT_BRANCH: "main"
+  SCRIPT_URL_PREFIX: "https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/${SCRIPT_BRANCH}"
+  GIT_DEPTH: 1
+  DOCKERFILE_PATH: "Dockerfile"
+
+  
 build:
   stage: build
   image: docker:23
@@ -14,9 +22,6 @@ build:
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
-    SCRIPT_BRANCH: "main"
-    SCRIPT_URL_PREFIX: "https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/${SCRIPT_BRANCH}/build/container"
-    GIT_DEPTH: 1
   tags:
     - amd64
   before_script:
@@ -26,11 +31,8 @@ build:
     - docker buildx create --name mybuilder --driver docker-container --use
     - docker buildx inspect --bootstrap
   script:
-    - bash -c "$(curl -fsSL $SCRIPT_URL_PREFIX/set_tag.sh)"
-    - bash -c "$(curl -fsSL $SCRIPT_URL_PREFIX/build.sh)"
-  artifacts:
-    reports:
-      dotenv: image_tag.env
+    - bash -c "$(curl -fsSL $SCRIPT_URL_PREFIX/build/container/set_tag.sh)"
+    - bash -c "$(curl -fsSL $SCRIPT_URL_PREFIX/build/container/build.sh)"
   rules:
     - if: $CI_PIPELINE_SOURCE == "manual"
       when: never

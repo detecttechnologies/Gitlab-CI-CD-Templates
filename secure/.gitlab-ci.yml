@@ -1,0 +1,55 @@
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+variables:
+  SCRIPT_BRANCH: "main"
+  SCRIPT_URL_PREFIX: "https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/${SCRIPT_BRANCH}"
+
+semgrep-sast:
+  needs: []
+  artifacts:
+    paths:
+      - gl-sast-report.json
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - when: never
+
+secret_detection:
+  needs: []
+  artifacts:
+    paths:
+      - gl-secret-detection-report.json
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - when: never
+
+analyze_reports:
+  stage: report
+  image: python:3.11-slim
+  before_script: 
+    - apt-get update && apt-get install curl bash jq -y
+    - pip install reportlab
+  script:
+    - bash -c "$(curl -fsSL $SCRIPT_URL_PREFIX/secure/analyze_test_reports.sh)"
+    - python -c "$(curl -fsSL $SCRIPT_URL_PREFIX/secure/generate_sast_scan_report.py)"
+    - python -c "$(curl -fsSL $SCRIPT_URL_PREFIX/secure/generate_secret_detection_report.py)"
+    - python -c "$(curl -fsSL $SCRIPT_URL_PREFIX/secure/generate_container_scan_report.py)" || true
+  artifacts:
+    reports:
+      metrics: metrics.txt
+    paths:
+      - secret-detection-report.pdf
+      - sast-report.pdf
+      - container-scanning-report.pdf
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - when: never
+  allow_failure: true
