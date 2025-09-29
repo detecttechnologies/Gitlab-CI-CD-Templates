@@ -17,7 +17,11 @@ build_binaries:
   before_script:
    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
    - git submodule sync && git submodule update --init --recursive
-   - apt-get update && apt-get install curl -y
+   - sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g' /etc/apt/sources.list
+   - sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list
+   - sed -i '/buster-updates/d' /etc/apt/sources.list
+   - apt-get update -o Acquire::Check-Valid-Until=false
+   - apt-get install -y curl
   script:
     - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh)"
   artifacts:
@@ -46,7 +50,11 @@ push_binaries:
   before_script:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
     - git submodule sync && git submodule update --init --recursive
-    - apt-get update && apt-get install curl -y
+    - sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g' /etc/apt/sources.list
+    - sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list
+    - sed -i '/buster-updates/d' /etc/apt/sources.list
+    - apt-get update -o Acquire::Check-Valid-Until=false
+    - apt-get install -y curl
     - git config --global user.email "PlatformTeam@detecttechnologies.com"
     - git config --global user.name "Detect Gitlab Bot"
   script:
