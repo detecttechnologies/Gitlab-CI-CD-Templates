@@ -38,7 +38,7 @@ build_root_package:
   image: ubuntu:latest
   script:
     - |
-      apt-get update && apt-get install -y rsync
+      apt-get update && apt-get install -y rsync curl
       echo "Creating a tarball for root_repo without .git files"
       mkdir temp_dir
       rsync -av --exclude='.git' --exclude='temp_dir' --exclude='.gitlab-ci.yml' --exclude='.vscode' ./ temp_dir/
