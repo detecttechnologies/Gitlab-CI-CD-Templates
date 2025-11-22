@@ -36,7 +36,7 @@ set-build-vars:
 build:
   stage: build
   needs: [set-build-vars]
-  image: docker:23
+  image: docker:28
   services:
     - docker:dind
   variables:
