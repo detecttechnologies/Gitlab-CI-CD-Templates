@@ -17,7 +17,7 @@ default:
 
 build_image:
   stage: build
-  image: docker:20
+  image: docker:25
   tags:
     - amd64
   services: 
@@ -107,6 +107,7 @@ deploy_docker:
       alias: docker
   variables:
     DOCKER_HOST: tcp://docker:2375/
+    DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
     DOCKER_AUTH_CONFIG: '{"auths":{"registry.gitlab.com":{"username":"${CI_CD_API_USER}","password":"${CI_CD_API_TOKEN}"}}}'
   tags:
