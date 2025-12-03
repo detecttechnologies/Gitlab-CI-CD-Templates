@@ -6,13 +6,16 @@ To utilize the CI/CD template, it's necessary to add it to your project's `.gitl
 
 ## Usage (Configuring Pipeline)
 
-### Adding CI/CD Variable
-    
-To set up CI/CD variables, navigate to Settings > CI/CD > Variables in your GitLab project and follow these steps:
-1. Set the `BUILD_OUTPUT_REPO` variable to the path of the destination repository where you want to push the built artifacts. 
-    - path is a substring of repo url and should be of the form `<org-name>/../../<YOUR_SOURCE_REPO>.git`
-2. Keep the variable `protected` to ensure that the job can access the variable only from a protected branch.
+### Preparatory Steps
 
+1. Adding CI/CD Variable
+    Navigate to the source repo that you will be compiling > Settings > CI/CD > Variables in your GitLab project and follow these steps:
+    1. Set the `BUILD_OUTPUT_REPO` variable to the path of the destination repository where you want to push the built artifacts. 
+        - path is a substring of repo url and should be of the form `<org-name>/../../<YOUR_SOURCE_REPO>.git`
+    2. Keep the variable `protected` to ensure that the job can access the variable only from a protected branch.
+2. Setting permissions
+    1. Go to the destination repo that will be storing the compiled code & add the Detect Gitlab Bot as a maintainer (Push will be done by the bot)
+    2. Navigate to https://gitlab.com/DetectTechnologies/Platform/CI-CD-Pipelines/python-ops/-/settings/ci_cd#js-pipeline-triggers, and add your source repo as a repo that can run pipelines to read from this repo (the python compilation container image will be pulled from the registry on this repo)
 
 ### Sample configuration 
 
