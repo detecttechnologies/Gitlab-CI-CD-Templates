@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 LOAD_DIR="/app/user/load"
 CWD=$(pwd)
