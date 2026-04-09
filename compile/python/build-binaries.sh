@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 LOAD_DIR="/app/user/load"
 CWD=$(pwd)
@@ -28,7 +27,7 @@ fi
 # Compile python files
 echo "Starting Compilation"
 echo "--------------------------------------------------------"
-python3 /app/py_compiler.py build_ext -b ${LOAD_DIR}
+python3 /app/py_compiler.py build_ext -b ${LOAD_DIR} || exit 1
 echo "--------------------------------------------------------"
 echo "Finished Compilation"
 
