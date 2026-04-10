@@ -19,7 +19,7 @@ echo "Copied repo files to load directory for compilation."
 if [ -z "${EXCLUDE_FILES:-}" ]; then
   echo "No files to be excluded from compilation"
 else
-  IFS=$'\n' read -rd '' -a exclude_files <<<"$EXCLUDE_FILES"
+  IFS=$'\n' read -rd '' -a exclude_files <<<"$EXCLUDE_FILES" || true
   for file in "${exclude_files[@]}"
   do
     file=${file#./}

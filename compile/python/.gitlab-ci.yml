@@ -2,7 +2,7 @@
 build-check-submodules:
   stage: validate
   tags:
-    - dt-gitlab-runner-t3a.xlarge
+    - amd64
   script:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
     - git submodule sync && git submodule update --init --recursive
@@ -12,7 +12,7 @@ build-check-submodules:
 build_binaries:
   stage: build
   tags:
-    - dt-gitlab-runner-t3a.xlarge
+    - amd64-xlarge
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY 2>/dev/null || true
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
@@ -22,8 +22,9 @@ build_binaries:
       docker run --rm \
         -v "$(pwd)":/workspace -w /workspace \
         -e CI_JOB_TOKEN="$CI_JOB_TOKEN" \
+        -e EXCLUDE_FILES="${EXCLUDE_FILES}" \
         registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pythoncompiler:2.0-${PLATFORM}-${VERSION} \
-        bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh)"
+        bash -c "curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh -o /tmp/build-binaries.sh && bash /tmp/build-binaries.sh"
   artifacts:
     paths:
       - artifacts/
@@ -38,7 +39,7 @@ build_binaries:
 push_binaries:
   stage: push
   tags:
-    - dt-gitlab-runner-t3a.xlarge
+    - amd64
   before_script:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
     - git submodule sync && git submodule update --init --recursive
@@ -55,8 +56,8 @@ push_binaries:
         -e BUILD_OUTPUT_REPO="${BUILD_OUTPUT_REPO}" \
         -e COPY_FILES="${COPY_FILES}" \
         -e RUN_SCRIPTS="${RUN_SCRIPTS}" \
-        ubuntu:22.04 \
-        bash -c "apt-get update -qq && apt-get install -y -qq git git-lfs curl && git config --global --add safe.directory /workspace && git lfs install && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && $(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
+        ubuntu:24.04 \
+        bash -c "apt-get update -qq && apt-get install -y -qq git git-lfs curl && git config --global --add safe.directory /workspace && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && git lfs install && git config --global credential.helper store && printf 'https://gitlab-ci-token:%s@gitlab.com\n' \"\$CI_JOB_TOKEN\" > /root/.git-credentials && git lfs pull && curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh -o /tmp/push-binaries.sh && bash /tmp/push-binaries.sh"
   only:
     refs:
       - main
