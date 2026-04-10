@@ -51,8 +51,12 @@ push_binaries:
         -e CI_JOB_TOKEN="$CI_JOB_TOKEN" \
         -e CI_SERVER_HOST="${CI_SERVER_HOST}" \
         -e CI_PROJECT_PATH="${CI_PROJECT_PATH}" \
+        -e BOT_ACCESS_TOKEN="${BOT_ACCESS_TOKEN}" \
+        -e BUILD_OUTPUT_REPO="${BUILD_OUTPUT_REPO}" \
+        -e COPY_FILES="${COPY_FILES}" \
+        -e RUN_SCRIPTS="${RUN_SCRIPTS}" \
         bitnami/git \
-        bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
+        bash -c "git config --global --add safe.directory /workspace && $(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
   only:
     refs:
       - main
