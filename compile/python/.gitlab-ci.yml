@@ -24,7 +24,7 @@ build_binaries:
         -e CI_JOB_TOKEN="$CI_JOB_TOKEN" \
         -e EXCLUDE_FILES="${EXCLUDE_FILES}" \
         registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pythoncompiler:2.0-${PLATFORM}-${VERSION} \
-        bash -c "curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/fix/lfs-push-binaries/compile/python/build-binaries.sh -o /tmp/build-binaries.sh && bash /tmp/build-binaries.sh"
+        bash -c "curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh -o /tmp/build-binaries.sh && bash /tmp/build-binaries.sh"
   artifacts:
     paths:
       - artifacts/
@@ -57,7 +57,7 @@ push_binaries:
         -e COPY_FILES="${COPY_FILES}" \
         -e RUN_SCRIPTS="${RUN_SCRIPTS}" \
         ubuntu:24.04 \
-        bash -c "apt-get update -qq && apt-get install -y -qq git git-lfs curl && git config --global --add safe.directory /workspace && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && git lfs install && git config --global credential.helper store && printf 'https://gitlab-ci-token:%s@gitlab.com\n' \"\$CI_JOB_TOKEN\" > /root/.git-credentials && git lfs pull && curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/fix/lfs-push-binaries/compile/python/push-binaries.sh -o /tmp/push-binaries.sh && bash /tmp/push-binaries.sh"
+        bash -c "apt-get update -qq && apt-get install -y -qq git git-lfs curl && git config --global --add safe.directory /workspace && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && git lfs install && git config --global credential.helper store && printf 'https://gitlab-ci-token:%s@gitlab.com\n' \"\$CI_JOB_TOKEN\" > /root/.git-credentials && git lfs pull && curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh -o /tmp/push-binaries.sh && bash /tmp/push-binaries.sh"
   only:
     refs:
       - main
