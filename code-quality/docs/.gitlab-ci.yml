@@ -3,6 +3,7 @@ stages:
 
 MR-title-check:
   stage: validate
+  tags: [dt-gitlab-runner-t3.xlarge]
   script:
     - |
       FIRST_CHAR="${CI_MERGE_REQUEST_TITLE%"${CI_MERGE_REQUEST_TITLE#?}"}"
@@ -21,14 +22,11 @@ MR-title-check:
 
 docs-spellcheck:
   stage: validate
-  image: python:slim
-  before_script:
-    - pip install codespell
-    - shopt -s globstar # Enable globbing using '*' in the shell, for the main script
+  tags: [dt-gitlab-runner-t3.xlarge]
   script:
-    - FILES_TO_SPELLCHECK=$( (ls **/*.py; ls **/*.md) | tr '\n' ' ')
-    - echo "Spellchecking the following files - ${FILES_TO_SPELLCHECK}"
-    - codespell ${FILES_TO_SPELLCHECK}
+    - |
+      docker run --rm -v "$(pwd)":/workspace -w /workspace python:slim \
+        bash -c 'pip install -q codespell && shopt -s globstar && FILES=$( (ls **/*.py; ls **/*.md) | tr "\n" " ") && codespell ${FILES}'
   rules:
     - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
       when: never
@@ -37,14 +35,11 @@ docs-spellcheck:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: always
 
-services:
-  - docker:dind
-
 docs-markdownlint:
-  image: docker:latest
   stage: validate
+  tags: [dt-gitlab-runner-t3.xlarge]
   script:
-    - docker run -v $(pwd):/workspace -w /workspace ghcr.io/igorshubovych/markdownlint-cli:latest --disable MD033 MD013 MD034 MD041 MD024 MD036 -- .
+    - docker run --rm -v "$(pwd)":/workspace -w /workspace ghcr.io/igorshubovych/markdownlint-cli:latest --disable MD033 MD013 MD034 MD041 MD024 MD036 -- .
   rules:
     - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
       when: never
