@@ -1,14 +1,15 @@
-# Runs ruff, black in main branch and merge_requests
+# Runs ruff, black on self-hosted runners using docker run wrappers
 stages:
   - validate
 
 # Black sub-stage in the validate stage
 cq-black:
   stage: validate
-  image: pyfound/black:latest_release
+  tags: [dt-gitlab-runner-t3.xlarge]
   script:
-    - black --diff --color --line-length 119 .
-    - black --check --verbose --line-length 119 .
+    - |
+      docker run --rm -v "$(pwd)":/workspace -w /workspace pyfound/black:latest_release \
+        sh -c "black --diff --color --line-length 119 . && black --check --verbose --line-length 119 ."
   rules:
     - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
       when: never
@@ -20,13 +21,11 @@ cq-black:
 # Ruff sub-stage in the validate stage
 cq-ruff:
   stage: validate
-  image: python:slim
-  before_script:
-    - pip install ruff
+  tags: [dt-gitlab-runner-t3.xlarge]
   script:
-    - ls .
-    - ruff check .
-    - ruff check . --output-format gitlab > gl-code-quality-report.json
+    - |
+      docker run --rm -v "$(pwd)":/workspace -w /workspace python:slim \
+        sh -c "pip install -q ruff && ruff check . && ruff check . --output-format gitlab > gl-code-quality-report.json"
   rules:
     - if: '$CI_MERGE_REQUEST_LABELS =~ /skip-validation/'
       when: never
