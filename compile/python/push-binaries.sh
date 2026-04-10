@@ -66,7 +66,7 @@ do
             echo "${split[1]}"
             cp -R -v ${split[0]} /root/dest/${split[1]}
         else
-            find . -type f -wholename "*$file*" ! -wholename "./*.git*" -exec cp --parents \{\} /root/dest/ \;
+            find . -type f -wholename "*$file*" ! -path "./.git/*" -exec cp --parents \{\} /root/dest/ \;
         fi
     done
 

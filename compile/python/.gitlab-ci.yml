@@ -44,6 +44,9 @@ push_binaries:
     - git submodule sync && git submodule update --init --recursive
     - git config --global user.email "PlatformTeam@detecttechnologies.com"
     - git config --global user.name "Detect Gitlab Bot"
+    # Resolve LFS pointers on the host so the Docker mount has actual file content
+    # (not 134-byte pointer stubs that cause "LFS objects are missing" on push)
+    - git lfs install && git lfs pull
   script:
     - |
       docker run --rm \
@@ -55,8 +58,8 @@ push_binaries:
         -e BUILD_OUTPUT_REPO="${BUILD_OUTPUT_REPO}" \
         -e COPY_FILES="${COPY_FILES}" \
         -e RUN_SCRIPTS="${RUN_SCRIPTS}" \
-        ubuntu:22.04 \
-        bash -c "apt-get update -qq && apt-get install -y -qq git git-lfs curl && git config --global --add safe.directory /workspace && git lfs install && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && $(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
+        ubuntu:24.04 \
+        bash -c "apt-get update -qq && apt-get install -y -qq git git-lfs curl && git config --global --add safe.directory /workspace && git lfs install && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && $(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/fix/lfs-push-binaries/compile/python/push-binaries.sh)"
   only:
     refs:
       - main
