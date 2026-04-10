@@ -16,7 +16,7 @@ build_binaries:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY 2>/dev/null || true
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
-    - git submodule sync && git submodule update --init --recursive
+    - git submodule sync && git submodule update --init --recursive --jobs $(nproc)
   script:
     - |
       docker run --rm \
