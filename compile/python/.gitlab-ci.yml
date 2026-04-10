@@ -56,7 +56,7 @@ push_binaries:
         -e COPY_FILES="${COPY_FILES}" \
         -e RUN_SCRIPTS="${RUN_SCRIPTS}" \
         bitnami/git \
-        bash -c "apt-get update -qq && apt-get install -y -qq git-lfs && git lfs install && git config --global --add safe.directory /workspace && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && $(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
+        bash -c "install_packages git-lfs && git lfs install && git config --global --add safe.directory /workspace && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && $(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
   only:
     refs:
       - main
