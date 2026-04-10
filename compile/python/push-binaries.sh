@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Copy files from artifacts to their original distination and remove artifacts folder
 cwd=$(pwd)
@@ -18,8 +19,14 @@ else
     done
 fi
 
+# Store credentials so git-lfs can authenticate to the LFS endpoint
+git config --global credential.helper store
+printf 'https://oauth2:%s@gitlab.com\n' "$BOT_ACCESS_TOKEN" > /root/.git-credentials
+
 # Clone destination repo to make it available as local inside pipeline
 git clone "https://oauth2:$BOT_ACCESS_TOKEN@gitlab.com/${BUILD_OUTPUT_REPO}" /root/dest
+# Install LFS hooks in the cloned repo so the pre-push hook uploads LFS objects
+git -C /root/dest lfs install
 
 # Remove branches from remote if the variable is assigned "true"
 cd /root/dest
@@ -95,7 +102,7 @@ do
 
     # Push back the updated repository
     cd /root/dest
-    
+
     git add -A && git commit -m "Commit in source pipeline at timestamp:$timestamp"
     
     cd -
@@ -107,6 +114,8 @@ do
 
     # Merge all commits in one
     git reset $(git commit-tree HEAD^{tree} -m "Commit in source pipeline at timestamp:$timestamp")
+    # Explicitly push LFS objects before the normal push
+    git lfs push --all origin
     git push --quiet origin HEAD:${branch} -f
     
     cd - # Switch back to the source repo before the next iteration
