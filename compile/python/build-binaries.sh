@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -euxo pipefail
 
 NPROC=$(nproc)
 LOAD_DIR="/app/user/load"
