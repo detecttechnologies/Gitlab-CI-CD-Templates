@@ -21,7 +21,7 @@ fi
 
 # Store credentials so git-lfs can authenticate to the LFS endpoint
 git config --global credential.helper store
-printf 'https://oauth2:%s@gitlab.com\n' "$BOT_ACCESS_TOKEN" > /root/.git-credentials
+printf 'https://oauth2:%s@gitlab.com\n' "$BOT_ACCESS_TOKEN" >> /root/.git-credentials
 
 # Clone destination repo to make it available as local inside pipeline
 git clone "https://oauth2:$BOT_ACCESS_TOKEN@gitlab.com/${BUILD_OUTPUT_REPO}" /root/dest
