@@ -1,8 +1,8 @@
-# Check if all the submodules that have been added are valid submodules (Ex: a submodule accidentally being added with `git clone` instead of `git submodule add`) (If not, the next CI jobs will fail otherwise)
+# Check if all the submodules that have been added are valid submodules
 build-check-submodules:
   stage: validate
   tags:
-    - saas-linux-small-amd64
+    - dt-gitlab-runner-t3.xlarge
   script:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
     - git submodule sync && git submodule update --init --recursive
@@ -11,46 +11,48 @@ build-check-submodules:
 
 build_binaries:
   stage: build
-  image: 
-    name: registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pythoncompiler:2.0-$PLATFORM-$VERSION
-    entrypoint:  []
+  tags:
+    - dt-gitlab-runner-t3.xlarge
   before_script:
-   - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
-   - git submodule sync && git submodule update --init --recursive
-   - apt-get update && apt-get install curl -y
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY 2>/dev/null || true
+    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
+    - git submodule sync && git submodule update --init --recursive
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh)"
+    - |
+      docker run --rm \
+        -v "$(pwd)":/workspace -w /workspace \
+        -e CI_JOB_TOKEN="$CI_JOB_TOKEN" \
+        registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pythoncompiler:2.0-${PLATFORM}-${VERSION} \
+        bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh)"
   artifacts:
     paths:
       - artifacts/
   parallel:
     matrix:
-      - TAG: amd64
-        PLATFORM: amd64
+      - PLATFORM: amd64
         VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10]
-      - TAG: armv8
-        PLATFORM: arm64
-        VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
-      - TAG: armv8
-        PLATFORM: armv7
-        VERSION: [py3.5,py3.6,py3.7,py3.8,py3.9,py3.10] 
-  tags:
-    - $TAG
   only:
     refs:
       - main
 
 push_binaries:
   stage: push
-  image: bitnami/git
+  tags:
+    - dt-gitlab-runner-t3.xlarge
   before_script:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
     - git submodule sync && git submodule update --init --recursive
-    - apt-get update && apt-get install curl -y
     - git config --global user.email "PlatformTeam@detecttechnologies.com"
     - git config --global user.name "Detect Gitlab Bot"
   script:
-    - bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
+    - |
+      docker run --rm \
+        -v "$(pwd)":/workspace -w /workspace \
+        -e CI_JOB_TOKEN="$CI_JOB_TOKEN" \
+        -e CI_SERVER_HOST="${CI_SERVER_HOST}" \
+        -e CI_PROJECT_PATH="${CI_PROJECT_PATH}" \
+        bitnami/git \
+        bash -c "$(curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh)"
   only:
     refs:
       - main
