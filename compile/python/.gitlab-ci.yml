@@ -18,13 +18,15 @@ build_binaries:
     - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "git@gitlab.com:"
     - git submodule sync && git submodule update --init --recursive --jobs $(nproc)
   script:
+    - curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh -o /tmp/build-binaries.sh
     - |
       docker run --rm \
         -v "$(pwd)":/workspace -w /workspace \
+        -v /tmp/build-binaries.sh:/tmp/build-binaries.sh:ro \
         -e CI_JOB_TOKEN="$CI_JOB_TOKEN" \
         -e EXCLUDE_FILES="${EXCLUDE_FILES}" \
         registry.gitlab.com/detecttechnologies/platform/ci-cd-pipelines/python-ops/pythoncompiler:2.0-${PLATFORM}-${VERSION} \
-        bash -c "curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/build-binaries.sh -o /tmp/build-binaries.sh && bash /tmp/build-binaries.sh"
+        bash /tmp/build-binaries.sh
   artifacts:
     paths:
       - artifacts/
