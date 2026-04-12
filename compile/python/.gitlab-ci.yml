@@ -34,9 +34,8 @@ build_binaries:
     matrix:
       - PLATFORM: amd64
         VERSION: [py3.11]
-  only:
-    refs:
-      - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
 
 push_binaries:
   stage: push
@@ -60,6 +59,5 @@ push_binaries:
         -e RUN_SCRIPTS="${RUN_SCRIPTS}" \
         ubuntu:24.04 \
         bash -c "apt-get update -qq && apt-get install -y -qq git git-lfs curl && git config --global --add safe.directory /workspace && git config --global user.email PlatformTeam@detecttechnologies.com && git config --global user.name 'Detect Gitlab Bot' && git lfs install && git config --global credential.helper store && printf 'https://gitlab-ci-token:%s@gitlab.com\n' \"\$CI_JOB_TOKEN\" > /root/.git-credentials && git lfs pull && curl -fsSL https://github.com/detecttechnologies/Gitlab-CI-CD-Templates/raw/main/compile/python/push-binaries.sh -o /tmp/push-binaries.sh && bash /tmp/push-binaries.sh"
-  only:
-    refs:
-      - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
