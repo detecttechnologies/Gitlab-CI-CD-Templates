@@ -11,12 +11,12 @@ stages:
 
 default:
   tags:
-    - amd64
+    - amd64-docker
 
 build_package:
   stage: build
   tags:
-    - saas-linux-medium-amd64
+    - amd64
   image: node:16.14.2
   script:
     - |
