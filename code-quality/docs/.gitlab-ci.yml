@@ -6,10 +6,15 @@ MR-title-check:
   tags: [amd64]
   script:
     - |
-      FIRST_CHAR="${CI_MERGE_REQUEST_TITLE%"${CI_MERGE_REQUEST_TITLE#?}"}"
+      # Strip "Draft: " or "WIP: " prefix (GitLab prepends these to draft MRs)
+      TITLE="${CI_MERGE_REQUEST_TITLE}"
+      TITLE="${TITLE#Draft: }"
+      TITLE="${TITLE#WIP: }"
+      FIRST_CHAR="${TITLE%"${TITLE#?}"}"
       case "${FIRST_CHAR}" in
         [\u0000-\u007F]*)
           echo "Merge request title does not start with a unicode gitmoji. Validation failed."
+          echo "Title (after stripping Draft:/WIP: prefix): ${TITLE}"
           exit 1
           ;;
         *)
