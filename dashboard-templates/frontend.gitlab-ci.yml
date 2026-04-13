@@ -9,6 +9,17 @@ stages:
   - post
   - deploy
 
+.runner_sg_guard:
+  before_script:
+    - export RUNNER_IP=$(curl -s ifconfig.me)
+    - 'echo "runner IP: $RUNNER_IP"'
+    - echo "$RUNNER_IP" > .runner_ip
+    - python3 /app/scripts/add_runner_ip_to_sg.py
+  after_script:
+    - export RUNNER_IP="$(cat .runner_ip 2>/dev/null || true)"
+    - 'echo "cleanup IP: ${RUNNER_IP:-not-set}"'
+    - python3 /app/scripts/remove_runner_ip_from_sg.py
+
 default:
   tags:
     - amd64-docker
@@ -16,7 +27,7 @@ default:
 build_package:
   stage: build
   tags:
-    - amd64
+    - saas-linux-medium-amd64
   image: node:16.14.2
   script:
     - |
@@ -34,7 +45,7 @@ build_package:
 build_root_package:
   stage: build
   tags:
-    - amd64
+    - saas-linux-medium-amd64
   image: ubuntu:latest
   script:
     - |
@@ -117,6 +128,7 @@ update_version_manifest:
     - if: $CI_COMMIT_TAG
 
 deploy_package:
+  extends: .runner_sg_guard
   stage: deploy
   image: registry.gitlab.com/detecttechnologies/software/webapps/t-pulse/web/tpulse-msa/tpulse-msa-cicd:production
   variables:
@@ -125,12 +137,6 @@ deploy_package:
     name: $LIFECYCLE_STAGE
   script:
     - python3 /app/scripts/get_config_files.py
-    - service chrony start
-    - python3 /app/scripts/connect_vpn.py
-    - sleep 20s
-    - echo "nameserver 8.8.8.8" >> /etc/resolv.conf
-    - IP_ADDRESS=$(curl ifconfig.me)
-    - echo "Public IP Address:$IP_ADDRESS"
     - python3 /app/scripts/deploy_fe.py
   rules:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
