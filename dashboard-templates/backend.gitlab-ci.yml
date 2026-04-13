@@ -32,8 +32,7 @@ build_image:
   stage: build
   image: docker:25
   tags:
-    # Temporary: GitLab SaaS shared runner — reliable docker:dind until self-hosted runner has privileged DinD
-    - saas-linux-medium-amd64
+    - amd64-docker
   services: 
     - docker:dind
   script:
@@ -124,9 +123,8 @@ deploy_docker:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
     DOCKER_AUTH_CONFIG: '{"auths":{"registry.gitlab.com":{"username":"${CI_CD_API_USER}","password":"${CI_CD_API_TOKEN}"}}}'
-  tags:
-    # Temporary: GitLab SaaS shared runner — reliable docker:dind until self-hosted runner has privileged DinD
-    - saas-linux-medium-amd64
+  tags: 
+    - amd64-docker
   environment:
     name: $LIFECYCLE_STAGE
   script:
@@ -141,6 +139,7 @@ deploy_docker:
 migrations:
   extends: .runner_sg_guard
   stage: migrate
+  retry: 2
   image: registry.gitlab.com/detecttechnologies/software/webapps/t-pulse/web/tpulse-msa/tpulse-msa-cicd:production
   variables:
     DOCKER_AUTH_CONFIG: '{"auths":{"registry.gitlab.com":{"username":"${CI_CD_API_USER}","password":"${CI_CD_API_TOKEN}"}}}'
