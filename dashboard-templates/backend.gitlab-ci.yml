@@ -13,13 +13,13 @@ stages:
 
 default:
   tags:
-    - amd64
+    - amd64-docker
 
 build_image:
   stage: build
   image: docker:25
   tags:
-    - amd64
+    - amd64-docker
   services: 
     - docker:dind
   script:
@@ -111,7 +111,7 @@ deploy_docker:
     DOCKER_DRIVER: overlay2
     DOCKER_AUTH_CONFIG: '{"auths":{"registry.gitlab.com":{"username":"${CI_CD_API_USER}","password":"${CI_CD_API_TOKEN}"}}}'
   tags:
-    - amd64
+    - amd64-docker
   environment:
     name: $LIFECYCLE_STAGE
   script:
@@ -129,7 +129,7 @@ migrations:
   variables:
     DOCKER_AUTH_CONFIG: '{"auths":{"registry.gitlab.com":{"username":"${CI_CD_API_USER}","password":"${CI_CD_API_TOKEN}"}}}'
   tags:
-    - amd64
+    - amd64-docker
   environment:
     name: $LIFECYCLE_STAGE
   script:
